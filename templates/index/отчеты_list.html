@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список отчетов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-chart {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .btn-chart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 0;
+        }
+
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .reports-table th {
+            background: #f7fafc;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .reports-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .reports-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .reports-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .org-badge {
+            background: #e8f4fd;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .amount {
+            font-weight: 700;
+            color: #48bb78;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #a0aec0;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .reports-table th,
+            .reports-table td {
+                padding: 10px;
+                font-size: 11px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-small {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Список отчетов</h1>
+            <div class="button-group">
+                <a href="{% url 'отчет_create_from_payments' %}" class="btn btn-primary">
+                    📊 Создать новый отчет
+                </a>
+                <a href="{% url 'выплаты_list' %}" class="btn btn-secondary">
+                    ← Назад к выплатам
+                </a>
+            </div>
+        </div>
+
+        <!-- УДАЛЕН БЛОК messages -->
+
+        {% if отчеты %}
+        <div class="content-card">
+            <div class="card-header">
+                <h2>📋 Все отчеты</h2>
+            </div>
+            <div class="table-container">
+                <table class="reports-table">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Период</th>
+                            <th>Организации</th>
+                            <th>Сумма</th>
+                            <th>Кол-во выплат</th>
+                            <th>Дата создания</th>
+                            <th>Действия</th>
+                        </thead>
+                    <tbody>
+                        {% for отчет in отчеты %}
+                        <tr>
+                            <td>
+                                <strong>{{ отчет.название }}</strong>
+                            </td>
+                            <td>
+                                {{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }}
+                            </td>
+                            <td>
+                                {% if отчет.организации.exists %}
+                                    <span class="org-badge">{{ отчет.организации.count }} организаций</span>
+                                {% else %}
+                                    <span style="color: #718096;">Все организации</span>
+                                {% endif %}
+                            </td>
+                            <td class="amount"><strong>{{ отчет.общая_сумма|floatformat:2 }} руб.</strong></td>
+                            <td>{{ отчет.количество_выплат }}</td>
+                            <td>{{ отчет.дата_создания|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'отчет_детали' отчет.pk %}" class="btn btn-info btn-small">
+                                        👁️ Просмотр
+                                    </a>
+                                    <a href="{% url 'отчет_download' отчет.pk %}" class="btn btn-small" style="background: linear-gradient(135deg, #6c757d, #5a6268); color: white;">
+                                        ⬇️ Скачать
+                                    </a>
+                                    <a href="{% url 'отчет_chart' отчет.pk %}" class="btn btn-chart btn-small">
+                                        📈 Диаграмма
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="content-card">
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>Отчеты не найдены</h3>
+                <p>Создайте первый отчет на основе фильтров выплат</p>
+                <a href="{% url 'отчет_create_from_payments' %}" class="btn btn-primary">📊 Создать отчет</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.content-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

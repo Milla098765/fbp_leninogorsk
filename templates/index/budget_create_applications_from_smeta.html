@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Создание заявок из сметы</h1>
+        <a href="{% url 'budget_smeta_detail' smeta.pk %}" class="btn btn-secondary">← Назад к смете</a>
+    </div>
+
+    <div class="smeta-info">
+        <h2>{{ smeta.название }}</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Организация:</strong>
+                <span>{{ smeta.организация.ПолноеНаименование }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Год:</strong>
+                <span>{{ smeta.год }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Общая сумма:</strong>
+                <span class="amount">{{ smeta.общая_сумма }} руб.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <h3>Выберите проекты для создания заявок</h3>
+        <p class="info-text">Для каждого выбранного проекта будет создана отдельная заявка со статусом "Новая"</p>
+        
+        <form method="post" class="applications-form">
+            {% csrf_token %}
+            
+            {{ form.проекты }}
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">Создать заявки</button>
+                <a href="{% url 'budget_smeta_detail' smeta.pk %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+
+    {% if smeta.созданные_заявки.all %}
+    <div class="existing-applications">
+        <h3>Уже созданные заявки</h3>
+        <div class="applications-list">
+            {% for application in smeta.созданные_заявки.all %}
+            <div class="application-item">
+                <div class="application-header">
+                    <h4>Заявка #{{ application.id }}</h4>
+                    <span class="status-badge status-{{ application.статус }}">
+                        {{ application.get_статус_display }}
+                    </span>
+                </div>
+                <div class="application-details">
+                    <div><strong>Сумма:</strong> {{ application.запрашиваемая_сумма }} руб.</div>
+                    <div><strong>Дата:</strong> {{ application.дата_подачи|date:"d.m.Y" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.smeta-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.smeta-info h2 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item strong {
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+    font-size: 16px;
+}
+
+.form-container {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.form-container h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.info-text {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #e8f4fd;
+    border-radius: 5px;
+}
+
+.applications-form {
+    margin-top: 20px;
+}
+
+.applications-form ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.applications-form li {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.applications-form label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.applications-form input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #229954;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.existing-applications h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.applications-list {
+    display: grid;
+    gap: 10px;
+}
+
+.application-item {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #3498db;
+}
+
+.application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.application-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-new { background: #cce5ff; color: #004085; }
+.status-approved { background: #d4edda; color: #155724; }
+.status-rejected { background: #f8d7da; color: #721c24; }
+
+.application-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    color: #666;
+    font-size: 14px;
+}
+</style>
+{% endblock %}

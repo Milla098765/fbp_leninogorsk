@@ -1,0 +1,441 @@
+{% extends 'index/organization_base.html' %}
+{% block content %}
+<div class="applications-container">
+    <h1>История заявок</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 10px; margin-bottom: 20px; background: {% if message.tags == 'error' %}#f8d7da{% else %}#d4edda{% endif %}; color: {% if message.tags == 'error' %}#721c24{% else %}#155724{% endif %}; border-radius: 4px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if applications %}
+    <div class="applications-list">
+        {% for application in applications %}
+        <div class="application-card">
+            <!-- Шапка карточки -->
+            <div class="application-header">
+                <div class="application-title">
+                    <a href="{% url 'organization_application_detail' application.id %}" style="text-decoration: none; color: inherit;">
+                        <h3>Заявка #{{ application.id }}</h3>
+                    </a>
+                    <span class="application-date">{{ application.дата_подачи|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="application-status">
+                    {% if application.статус == 'new' %}
+                        <span class="status-badge status-new">⏳ Новая</span>
+                    {% elif application.статус == 'approved' %}
+                        <span class="status-badge status-approved">✅ Принята</span>
+                    {% else %}
+                        <span class="status-badge status-rejected">❌ Отклонена</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="application-details">
+                <div class="detail-row">
+                    <label>Вид выплаты:</label>
+                    <span>{% if application.вид_выплаты %}{{ application.вид_выплаты }}{% else %}{{ application.другой_вид_выплаты }}{% endif %}</span>
+                </div>
+                <div class="detail-row">
+                    <label>Запрашиваемая сумма:</label>
+                    <span class="amount">{{ application.запрашиваемая_сумма|floatformat:2 }} руб.</span>
+                </div>
+                {% if application.дата_рассмотрения %}
+                <div class="detail-row">
+                    <label>Дата рассмотрения:</label>
+                    <span>{{ application.дата_рассмотрения|date:"d.m.Y H:i" }}</span>
+                </div>
+                {% endif %}
+                
+                <!-- Блок причины отклонения -->
+                {% if application.статус == 'rejected' and application.комментарий_отклонения %}
+                <div class="detail-row rejection-reason">
+                    <label>Причина отклонения:</label>
+                    <span style="color: #e74c3c; font-style: italic;">{{ application.комментарий_отклонения }}</span>
+                </div>
+                {% endif %}
+                
+                <!-- Блок ДОКУМЕНТОВ из выплаты - ИСПРАВЛЕНО -->
+                <div class="documents-section">
+                    <label>📎 Документы выплаты:</label>
+                    <div class="documents-list">
+                        {% if application.статус == 'approved' %}
+                            {# Получаем все выплаты, связанные с этой заявкой - ИСПРАВЛЕНО #}
+                            {% with application.связанные_выплаты.all as выплаты %}
+                                {% if выплаты %}
+                                    {% for выплата in выплаты %}
+                                        {# Проверяем, что выплата выполнена и документ создан #}
+                                        {% if выплата.статус == 'выплачено' and выплата.документ_создан %}
+                                            <div class="document-item">
+                                                <span class="doc-icon">📄</span>
+                                                <span class="doc-name">Платежный документ №{{ выплата.код_выплаты }}</span>
+                                                <span class="doc-date">{{ выплата.дата_выполнения|date:"d.m.Y" }}</span>
+                                                <a href="{% url 'download_organization_payment_document' application.id %}" class="btn-download" target="_blank">
+                                                    ⬇️ Скачать PDF
+                                                </a>
+                                            </div>
+                                        {% else %}
+                                            <div class="document-item no-docs">
+                                                <span class="doc-icon">⏳</span>
+                                                <span class="doc-name">Выплата №{{ выплата.код_выплаты }}</span>
+                                                <span class="doc-date">Статус: {{ выплата.get_статус_display }}</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="document-item no-docs">
+                                        <span class="doc-icon">⏳</span>
+                                        <span class="doc-name">Выплата еще не создана</span>
+                                        <span class="doc-date">Ожидает обработки</span>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            <div class="document-item no-docs">
+                                <span class="doc-icon">📭</span>
+                                <span class="doc-name">Документ недоступен</span>
+                                <span class="doc-date">-</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Отладочная информация (исправлена) -->
+                {% if application.статус == 'approved' %}
+                <div class="debug-info" style="font-size: 10px; color: #999; margin-top: 10px; padding: 5px; background: #f8f9fa; border-radius: 4px;">
+                    <small>
+                        Отладка: Найдено выплат: {{ application.связанные_выплаты.count }} |
+                        {% for выплата in application.связанные_выплаты.all %}
+                            Выплата #{{ выплата.id }} ({{ выплата.код_выплаты }}) статус: {{ выплата.статус }} | 
+                            документ_создан: {{ выплата.документ_создан }} |
+                        {% endfor %}
+                    </small>
+                </div>
+                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="no-applications">
+                        <p>📭 У вас пока нет заявок.</p>
+                        <a href="{% url 'application_create' %}" class="btn btn-primary">📝 Подать первую заявку</a>
+                    </div>
+                    {% endif %}
+                </div>
+
+<style>
+.applications-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 28px;
+    border-left: 4px solid #667eea;
+    padding-left: 15px;
+}
+
+.applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.application-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    transition: all 0.3s ease;
+    border-left: 4px solid #cbd5e0;
+}
+
+.application-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Только левая полоска меняет цвет в зависимости от статуса */
+.application-card.status-new {
+    border-left-color: #f39c12;
+}
+
+.application-card.status-approved {
+    border-left-color: #48bb78;
+}
+
+.application-card.status-rejected {
+    border-left-color: #f56565;
+}
+
+.application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.application-title h3 {
+    margin: 0 0 5px 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.application-title h3:hover {
+    color: #667eea;
+}
+
+.application-date {
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+.application-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-new {
+    background: #fef5e7;
+    color: #f39c12;
+}
+
+.status-approved {
+    background: #e6f7e6;
+    color: #48bb78;
+}
+
+.status-rejected {
+    background: #fee;
+    color: #f56565;
+}
+
+.application-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row label {
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 140px;
+    font-size: 13px;
+}
+
+.detail-row .amount {
+    font-weight: 700;
+    color: #48bb78;
+    font-size: 16px;
+}
+
+/* Секция документов */
+.documents-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.documents-section label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.document-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f7fafc;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.document-item:hover {
+    background: #edf2f7;
+}
+
+.doc-icon {
+    font-size: 1.1rem;
+}
+
+.doc-name {
+    flex: 1;
+    color: #2d3748;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.doc-date {
+    color: #a0aec0;
+    font-size: 0.7rem;
+}
+
+.btn-download {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-download:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.no-docs {
+    background: #fef5e7;
+}
+
+.no-docs .doc-name {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+.rejection-reason {
+    background: #fff5f5;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 5px;
+    border-left: 3px solid #f56565;
+}
+
+.rejection-reason label {
+    color: #f56565;
+}
+
+.no-applications {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.no-applications p {
+    margin-bottom: 20px;
+    color: #718096;
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Отладочная информация */
+.debug-info {
+    font-size: 10px;
+    color: #999;
+    margin-top: 10px;
+    padding: 5px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 768px) {
+    .applications-container {
+        padding: 15px;
+    }
+    
+    .application-header {
+        flex-direction: column;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .detail-row label {
+        min-width: auto;
+    }
+    
+    .document-item {
+        flex-wrap: wrap;
+    }
+    
+    .btn-download {
+        margin-left: auto;
+    }
+    
+    .debug-info {
+        font-size: 8px;
+    }
+}
+</style>
+
+<script>
+    // Добавляем класс статуса к карточке
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.application-card');
+        cards.forEach(card => {
+            const statusElement = card.querySelector('.status-badge');
+            if (statusElement) {
+                if (statusElement.classList.contains('status-new')) {
+                    card.classList.add('status-new');
+                } else if (statusElement.classList.contains('status-approved')) {
+                    card.classList.add('status-approved');
+                } else if (statusElement.classList.contains('status-rejected')) {
+                    card.classList.add('status-rejected');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

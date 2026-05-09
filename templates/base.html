@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}ФБП Лениногорск{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'index/styles.css' %}">
+    <style>
+        nav {
+            background: #2c3e50;
+            padding: 15px 20px;
+            color: white;
+        }
+        nav button, nav a {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        nav button:hover, nav a:hover {
+            background: #2980b9;
+        }
+        main {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        {% if request.session.user_role == 'organization' %}
+            <!-- Навигация для организаций -->
+            <span style="color: white; margin-right: 20px;">Организация: {{ request.session.org_name }}</span>
+            <a href="{% url 'organization_dashboard' %}">Личный кабинет</a>
+            <a href="{% url 'application_create' %}">Подать заявку</a>
+            <a href="{% url 'organization_applications' %}">Мои заявки</a>
+            <a href="{% url 'organization_logout' %}">Выйти</a>
+            
+        {% elif request.session.user_role == 'user' %}
+            <!-- Навигация для кастомных пользователей -->
+            <span style="color: white; margin-right: 20px;">Пользователь: {{ request.session.user_name }}</span>
+            <a href="{% url 'user_dashboard' %}">Управление заявками</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+            <a href="{% url 'budget_smeti_list' %}">Сметы от администрации</a>
+            
+        {% elif request.user.is_authenticated and request.session.user_role == 'superuser' %}
+            <!-- Навигация для суперпользователей -->
+            <a href="{% url 'home' %}">Главная</a>
+            <a href="{% url 'отделы_list' %}">Отделы</a>
+            <a href="{% url 'организации_list' %}">Организации</a>
+            <a href="{% url 'logout' %}">Выйти</a>
+            
+        {% else %}
+            <!-- Навигация для неавторизованных -->
+            <a href="{% url 'welcome' %}">Главная</a>
+            <a href="{% url 'login' %}">Вход для сотрудников</a>
+            <a href="{% url 'organization_login' %}">Вход для организаций</a>
+        {% endif %}
+    </nav>
+
+    <main>
+        {% block content %}
+        <!-- Содержимое конкретных страниц -->
+        {% endblock %}
+    </main>
+
+    <!-- Блок для дополнительных скриптов - подключается только на нужных страницах -->
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

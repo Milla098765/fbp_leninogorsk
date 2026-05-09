@@ -1,0 +1,817 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление пользователями</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '👥';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-section {
+            padding: 20px 25px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .search-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .search-group input,
+        .search-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-group input:focus,
+        .search-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .user-count {
+            padding: 15px 25px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .user-count span {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            padding: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-info {
+            padding: 16px;
+        }
+
+        .card-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .card-role {
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-department {
+            font-size: 0.8rem;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .no-users i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .no-users h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        /* Модальное окно */
+        .modal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal {
+            background: white;
+            width: 550px;
+            max-width: 95%;
+            border-radius: 24px;
+            overflow: hidden;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px 25px;
+            color: white;
+            position: relative;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.85rem;
+        }
+
+        .form-group label i {
+            margin-right: 6px;
+            color: #667eea;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #718096;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Управление пользователями</h1>
+            <p class="subtitle">Добавление, редактирование и управление учетными записями сотрудников</p>
+            <div class="button-group">
+                <a href="{% url 'login' %}" class="btn btn-danger">
+                    🚪 Выйти
+                </a>
+                <a href="{% url 'отделы_list' %}" class="btn btn-primary">
+                    🏢 Управление отделами
+                </a>
+                <a href="{% url 'организации_list' %}" class="btn btn-success">
+                    🏛️ Управление организациями
+                </a>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header">
+                <h2>
+                    👥 Список сотрудников
+                </h2>
+                <button class="btn btn-primary" id="btnAddUser">
+                    ➕ Добавить сотрудника
+                </button>
+            </div>
+
+            <div class="search-section">
+                <form method="get" class="search-form">
+                    <div class="search-group">
+                        <label>🔍 Поиск по фамилии</label>
+                        <input type="text" name="search_familiya" placeholder="Введите фамилию" value="{{ search_familiya }}">
+                    </div>
+                    <div class="search-group">
+                        <label>🏢 Отдел</label>
+                        <select name="search_otdel">
+                            <option value="">Все отделы</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.id }}" {% if search_otdel == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.Название }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <button type="submit" class="btn btn-primary" style="margin-top: 24px;">🔍 Найти</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="user-count">
+                📊 Найдено пользователей: <span>{{ users.count }}</span>
+            </div>
+
+            <div class="cards-container" id="cardsContainer">
+                {% for user in users %}
+                <div class="card" data-id="{{ user.id }}">
+                    <div class="card-img">
+                        {% if user.Фото %}
+                            <img src="{{ user.Фото.url }}" alt="Фото {{ user }}">
+                        {% else %}
+                            👤
+                        {% endif %}
+                    </div>
+                    <div class="card-info">
+                        <div class="card-name">{{ user.Фамилия }} {{ user.Имя }} {{ user.Отчество|default:"" }}</div>
+                        <div class="card-role">
+                            {% if user.Роль == 'superuser' %}👑 Руководитель{% else %}👤 Специалист{% endif %}
+                        </div>
+                        <div class="card-department">
+                            <span>🏢</span> {{ user.Отдел|default:"Без отдела" }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-users">
+                    <i>👥</i>
+                    <h3>Пользователи не найдены</h3>
+                    <p>Попробуйте изменить параметры поиска или добавьте нового сотрудника</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div class="modal-bg" id="modalBg">
+        <div class="modal" id="modalContent">
+            <div class="modal-header">
+                <h3 id="modalTitle">Добавление сотрудника</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm" enctype="multipart/form-data" method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" id="userId" name="userId" value="">
+
+                    <div class="form-group">
+                        <label><i>👤</i> Имя *</label>
+                        <input type="text" name="Имя" id="id_Имя" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>👤</i> Фамилия *</label>
+                        <input type="text" name="Фамилия" id="id_Фамилия" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>👤</i> Отчество</label>
+                        <input type="text" name="Отчество" id="id_Отчество" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>⭐</i> Роль *</label>
+                        <select name="Роль" id="id_Роль" class="form-control" required>
+                            <option value="">-- Выберите роль --</option>
+                            <option value="user">Пользователь (специалист)</option>
+                            <option value="superuser">Суперюзер (руководитель)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>🔑</i> Логин *</label>
+                        <input type="text" name="Логин" id="id_Логин" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>🔒</i> Пароль *</label>
+                        <div class="password-container">
+                            <input type="password" name="Пароль" id="id_Пароль" class="form-control" required>
+                            <button type="button" class="toggle-password" id="togglePassword">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>📞</i> Телефон</label>
+                        <input type="text" name="Телефон" id="id_Телефон" class="form-control" placeholder="+7 XXX XXX XX XX">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>🏢</i> Отдел *</label>
+                        <select name="Отдел" id="id_Отдел" class="form-control" required>
+                            <option value="">-- Выберите отдел --</option>
+                            {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.Название }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i>📸</i> Фото</label>
+                        <input type="file" name="Фото" id="id_Фото" class="form-control" accept="image/*">
+                    </div>
+
+                    <div class="error-message" id="formErrors"></div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-save" id="btnSave">💾 Сохранить</button>
+                        <button type="button" class="btn btn-delete" id="btnDelete" style="display: none;">🗑️ Удалить</button>
+                        <button type="button" class="btn btn-cancel" id="btnCancel">❌ Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalBg = document.getElementById('modalBg');
+            const modalClose = document.getElementById('modalClose');
+            const btnAddUser = document.getElementById('btnAddUser');
+            const cardsContainer = document.getElementById('cardsContainer');
+            const btnCancel = document.getElementById('btnCancel');
+            const btnDelete = document.getElementById('btnDelete');
+            const formErrors = document.getElementById('formErrors');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('id_Пароль');
+
+            let currentUserId = null;
+            let isNewUser = false;
+
+            // Показать/скрыть пароль
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', () => {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+                });
+            }
+
+            function openModal() {
+                modalBg.style.display = 'flex';
+                if (formErrors) formErrors.textContent = '';
+            }
+
+            function closeModal() {
+                modalBg.style.display = 'none';
+                document.getElementById('userForm').reset();
+                currentUserId = null;
+                isNewUser = false;
+                if (btnDelete) btnDelete.style.display = 'none';
+                const modalTitle = document.getElementById('modalTitle');
+                if (modalTitle) modalTitle.textContent = 'Добавление сотрудника';
+            }
+
+            if (modalClose) modalClose.addEventListener('click', closeModal);
+            if (btnCancel) btnCancel.addEventListener('click', closeModal);
+            
+            modalBg.addEventListener('click', (e) => {
+                if (e.target === modalBg) closeModal();
+            });
+
+            // Добавление пользователя
+            if (btnAddUser) {
+                btnAddUser.addEventListener('click', () => {
+                    isNewUser = true;
+                    currentUserId = null;
+                    document.getElementById('userForm').reset();
+                    const modalTitle = document.getElementById('modalTitle');
+                    if (modalTitle) modalTitle.textContent = 'Добавление сотрудника';
+                    if (btnDelete) btnDelete.style.display = 'none';
+                    openModal();
+                });
+            }
+
+            // Редактирование пользователя
+            if (cardsContainer) {
+                cardsContainer.addEventListener('click', (e) => {
+                    const card = e.target.closest('.card');
+                    if (!card) return;
+                    currentUserId = card.getAttribute('data-id');
+                    isNewUser = false;
+                    
+                    fetch(`/user/${currentUserId}/edit/`)
+                        .then(response => response.text())
+                        .then(html => {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = html;
+                            const formData = tempDiv.querySelector('form');
+                            if (formData) {
+                                document.getElementById('id_Имя').value = formData.querySelector('[name="Имя"]')?.value || '';
+                                document.getElementById('id_Фамилия').value = formData.querySelector('[name="Фамилия"]')?.value || '';
+                                document.getElementById('id_Отчество').value = formData.querySelector('[name="Отчество"]')?.value || '';
+                                document.getElementById('id_Роль').value = formData.querySelector('[name="Роль"]')?.value || '';
+                                document.getElementById('id_Логин').value = formData.querySelector('[name="Логин"]')?.value || '';
+                                document.getElementById('id_Телефон').value = formData.querySelector('[name="Телефон"]')?.value || '';
+                                document.getElementById('id_Отдел').value = formData.querySelector('[name="Отдел"]')?.value || '';
+                            }
+                            const modalTitle = document.getElementById('modalTitle');
+                            if (modalTitle) modalTitle.textContent = 'Редактирование сотрудника';
+                            if (btnDelete) btnDelete.style.display = 'inline-block';
+                            openModal();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ошибка загрузки данных пользователя');
+                        });
+                });
+            }
+
+            // Отправка формы
+            const userForm = document.getElementById('userForm');
+            if (userForm) {
+                userForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(userForm);
+                    const url = isNewUser ? '/user/add/' : `/user/${currentUserId}/edit/`;
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData,
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            closeModal();
+                            location.reload();
+                        } else {
+                            formErrors.textContent = typeof data.errors === 'string' ? data.errors : JSON.stringify(data.errors);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        formErrors.textContent = 'Ошибка сервера';
+                    });
+                });
+            }
+
+            // Удаление пользователя
+            if (btnDelete) {
+                btnDelete.addEventListener('click', () => {
+                    if (!currentUserId) return;
+                    if (confirm('Вы уверены, что хотите удалить этого сотрудника?')) {
+                        fetch(`/user/${currentUserId}/delete/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRFToken': getCookie('csrftoken')
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                closeModal();
+                                location.reload();
+                            } else {
+                                alert('Ошибка удаления');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ошибка удаления');
+                        });
+                    }
+                });
+            }
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (const cookie of cookies) {
+                        const c = cookie.trim();
+                        if (c.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
+</body>
+</html>

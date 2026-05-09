@@ -1,0 +1,471 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аналитический отчет планировщика - {{ отчет.название }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-back {
+            background: #6c757d;
+        }
+        .btn-back:hover {
+            background: #5a6268;
+        }
+        .btn-download {
+            background: #27ae60;
+        }
+        .btn-download:hover {
+            background: #219a52;
+        }
+        
+        /* Информация об отчете */
+        .report-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-item strong {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        /* Статистика */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3498db;
+        }
+        .stat-card.planning {
+            border-top-color: #2ecc71;
+        }
+        .stat-card.forecast {
+            border-top-color: #f39c12;
+        }
+        .stat-card.risk {
+            border-top-color: #e74c3c;
+        }
+        .stat-card.analysis {
+            border-top-color: #9b59b6;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .positive {
+            color: #27ae60;
+        }
+        .negative {
+            color: #e74c3c;
+        }
+        
+        /* Диаграммы */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        .chart-container h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .chart-full-width {
+            grid-column: 1 / -1;
+        }
+        
+        /* Аналитический вывод */
+        .analysis-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 40px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .analysis-section h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        /* Детальная статистика */
+        .detailed-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .stat-item-detailed {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок и кнопки -->
+        <div class="header">
+            <h1>📊 Аналитический отчет планировщика: {{ отчет.название }}</h1>
+            <div>
+                <a href="{% url 'download_analytical_report' отчет.pk %}" class="btn btn-download">📥 Скачать аналитический отчет</a>
+                <a href="{% url 'planning_analytical_reports_list' %}" class="btn btn-back">← Назад к отчетам</a>
+            </div>
+        </div>
+
+        <!-- Информация об отчете -->
+        <div class="report-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Период анализа:</strong>
+                    <span>{{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Дата создания:</strong>
+                    <span>{{ отчет.дата_создания|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Количество организаций:</strong>
+                    <span>{{ отчет.организации.count }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Длительность периода:</strong>
+                    <span>{{ отчет.данные_графика.period_days }} дней</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Аналитические показатели планировщика -->
+        <div class="stats-section">
+            <div class="stat-card planning">
+                <div class="stat-label">Эффективность использования бюджета</div>
+                <div class="stat-value {% if отчет.эффективность_использования_бюджета >= 80 %}positive{% else %}negative{% endif %}">
+                    {{ отчет.эффективность_использования_бюджета|floatformat:1 }}%
+                </div>
+                <div class="stat-label">за период</div>
+            </div>
+            
+            <div class="stat-card forecast">
+                <div class="stat-label">Прогноз на остаток года</div>
+                <div class="stat-value">{{ отчет.прогноз_на_остаток_года|floatformat:2 }} ₽</div>
+                <div class="stat-label">по текущему темпу</div>
+            </div>
+            
+            <div class="stat-card risk">
+                <div class="stat-label">Риск невыполнения плана</div>
+                <div class="stat-value {% if отчет.риск_невыполнения_плана > 30 %}negative{% else %}positive{% endif %}">
+                    {{ отчет.риск_невыполнения_плана|floatformat:1 }}%
+                </div>
+                <div class="stat-label">вероятность</div>
+            </div>
+            
+            <div class="stat-card analysis">
+                <div class="stat-label">Отклонение от плана</div>
+                <div class="stat-value {% if отчет.отклонение >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ отчет.отклонение|floatformat:2 }} ₽
+                </div>
+                <div class="stat-label">абсолютное</div>
+            </div>
+        </div>
+
+        <!-- Дополнительная статистика -->
+        <div class="detailed-stats">
+            <div class="stat-item-detailed">
+                <div class="stat-label">Фактические выплаты</div>
+                <div class="stat-value">{{ отчет.фактическая_сумма|floatformat:2 }} ₽</div>
+            </div>
+            <div class="stat-item-detailed">
+                <div class="stat-label">Плановая сумма</div>
+                <div class="stat-value">{{ отчет.плановая_сумма_периода|floatformat:2 }} ₽</div>
+            </div>
+            <div class="stat-item-detailed">
+                <div class="stat-label">Количество выплат</div>
+                <div class="stat-value">{{ отчет.количество_выплат }}</div>
+            </div>
+            <div class="stat-item-detailed">
+                <div class="stat-label">Выполнение плана</div>
+                <div class="stat-value {% if отчет.процент_выполнения >= 100 %}positive{% else %}negative{% endif %}">
+                    {{ отчет.процент_выполнения|floatformat:1 }}%
+                </div>
+            </div>
+        </div>
+
+        <!-- Аналитический вывод -->
+        <div class="analysis-section">
+            <h3>📋 Аналитический вывод</h3>
+            {% if отчет.эффективность_использования_бюджета >= 90 %}
+                <p><strong>Высокая эффективность использования бюджетных средств.</strong> 
+                Показатели свидетельствуют об оптимальном использовании запланированных ресурсов.</p>
+            {% elif отчет.эффективность_использования_бюджета >= 70 %}
+                <p><strong>Удовлетворительная эффективность использования бюджетных средств.</strong> 
+                Имеется резерв для улучшения показателей.</p>
+            {% else %}
+                <p><strong>Низкая эффективность использования бюджетных средств.</strong> 
+                Требуется детальный анализ причин и разработка корректирующих мероприятий.</p>
+            {% endif %}
+            
+            {% if отчет.риск_невыполнения_плана > 30 %}
+                <p><strong>ВЫСОКИЙ РИСК невыполнения годового плана.</strong> 
+                Вероятность невыполнения составляет {{ отчет.риск_невыполнения_плана|floatformat:1 }}%. 
+                Необходимы срочные меры по корректировке.</p>
+            {% elif отчет.риск_невыполнения_плана > 15 %}
+                <p><strong>СРЕДНИЙ РИСК невыполнения годового плана.</strong> 
+                Требуется усиление контроля за исполнением плановых показателей.</p>
+            {% else %}
+                <p><strong>НИЗКИЙ РИСК невыполнения годового плана.</strong> 
+                Текущие темпы выполнения позволяют прогнозировать успешное достижение годовых показателей.</p>
+            {% endif %}
+            
+            <p>Прогнозный объем выплат на остаток года составляет <strong>{{ отчет.прогноз_на_остаток_года|floatformat:2 }} руб.</strong> 
+            based on current spending patterns.</p>
+        </div>
+
+        <!-- Новые аналитические диаграммы -->
+        <div class="charts-grid">
+            <!-- 1. Кумулятивный график выполнения плана -->
+            <div class="chart-container chart-full-width">
+                <h3>📈 Кумулятивное выполнение плана (накопленный итог)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="cumulativePlanChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. Эффективность организаций -->
+            <div class="chart-container">
+                <h3>🏢 Вклад организаций в общую сумму</h3>
+                <div class="chart-wrapper">
+                    <canvas id="orgEfficiencyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Анализ рисков по кварталам -->
+            <div class="chart-container">
+                <h3>⚠️ Анализ рисков по кварталам</h3>
+                <div class="chart-wrapper">
+                    <canvas id="quarterlyRiskChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. Тенденция выполнения плана -->
+            <div class="chart-container">
+                <h3>📊 Динамика выполнения плана по месяцам</h3>
+                <div class="chart-wrapper">
+                    <canvas id="monthlyCompletionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthlyTrend = {{ отчет.данные_графика.monthly_trend|safe }};
+        const orgEfficiency = {{ отчет.данные_графика.org_efficiency|safe }};
+        const quarterlyRisk = {{ отчет.данные_графика.quarterly_risk|safe }};
+
+        // 1. Кумулятивный график выполнения плана
+        new Chart(document.getElementById('cumulativePlanChart'), {
+            type: 'line',
+            data: {
+                labels: monthlyTrend.map(item => item.month),
+                datasets: [
+                    {
+                        label: 'Накопленный план',
+                        data: monthlyTrend.map(item => item.план_накопленный),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    },
+                    {
+                        label: 'Накопленный факт',
+                        data: monthlyTrend.map(item => item.факт_накопленный),
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toLocaleString() + ' ₽' }
+                    }
+                }
+            }
+        });
+
+        // 2. Эффективность организаций
+        new Chart(document.getElementById('orgEfficiencyChart'), {
+            type: 'bar',
+            data: {
+                labels: orgEfficiency.map(item => item.организация.substring(0, 20) + '...'),
+                datasets: [{
+                    label: 'Вклад в общую сумму %',
+                    data: orgEfficiency.map(item => item.вклад_в_общую_сумму),
+                    backgroundColor: '#9b59b6'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toFixed(1) + '%' }
+                    }
+                }
+            }
+        });
+
+        // 3. Анализ рисков по кварталам
+        new Chart(document.getElementById('quarterlyRiskChart'), {
+            type: 'bar',
+            data: {
+                labels: quarterlyRisk.map(item => item.квартал),
+                datasets: [
+                    {
+                        label: 'Выполнение плана %',
+                        data: quarterlyRisk.map(item => item.выполнение),
+                        backgroundColor: '#2ecc71',
+                        order: 2
+                    },
+                    {
+                        label: 'Риск невыполнения %',
+                        data: quarterlyRisk.map(item => item.риск),
+                        backgroundColor: '#e74c3c',
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: value => value + '%' }
+                    }
+                }
+            }
+        });
+
+        // 4. Тенденция выполнения плана по месяцам
+        new Chart(document.getElementById('monthlyCompletionChart'), {
+            type: 'line',
+            data: {
+                labels: monthlyTrend.map(item => item.month),
+                datasets: [{
+                    label: 'Выполнение плана %',
+                    data: monthlyTrend.map(item => 
+                        item.план_месяц > 0 ? (item.факт_месяц / item.план_месяц * 100) : 0
+                    ),
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: value => value.toFixed(0) + '%' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

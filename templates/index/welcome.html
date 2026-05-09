@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФБП Лениногорск - Выбор входа</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .welcome-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        h1::before {
+            content: '🏦';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            display: block;
+            padding: 18px 24px;
+            margin: 15px 0;
+            color: white;
+            text-decoration: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-staff {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .btn-staff:hover {
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-org {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .btn-org:hover {
+            box-shadow: 0 10px 25px rgba(72, 187, 120, 0.4);
+        }
+
+        .info-text {
+            color: #a0aec0;
+            font-size: 0.85rem;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 480px) {
+            .welcome-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 14px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <h1>ФБП Лениногорск</h1>
+        <p class="subtitle">Финансово-бюджетная палата</p>
+        
+        <p style="color: #4a5568; margin-bottom: 25px; font-weight: 500;">Выберите тип входа:</p>
+        
+        <a href="{% url 'login' %}" class="btn btn-staff">
+            👥 Вход для сотрудников и администраторов
+        </a>
+        <a href="{% url 'organization_login' %}" class="btn btn-org">
+            🏢 Вход для организаций
+        </a>
+        
+        <div class="info-text">
+            <small>Если у вас нет учетной записи, обратитесь к администратору</small>
+        </div>
+    </div>
+</body>
+</html>

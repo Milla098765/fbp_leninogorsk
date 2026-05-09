@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="application-detail-container">
+    <h1>Просмотр заявки #{{ application.id }}</h1>
+    
+    <div class="application-detail">
+        <!-- Информация об организации -->
+        <div class="detail-section">
+            <h2>Информация об организации</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Организация:</strong>
+                    <span>{{ application.полное_наименование }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>ИНН:</strong>
+                    <span>{{ application.инн }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Счет организации:</strong>
+                    <span>{{ application.счет_организации }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о получателе -->
+        <div class="detail-section">
+            <h2>Информация о получателе</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Получатель:</strong>
+                    <span>{{ application.получатель }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Счет получателя:</strong>
+                    <span>{{ application.счет_получателя }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Данные заявки -->
+        <div class="detail-section">
+            <h2>Данные заявки</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Вид выплаты:</strong>
+                    <span>
+                        {% if application.вид_выплаты %}
+                            {{ application.вид_выплаты }}
+                        {% else %}
+                            {{ application.другой_вид_выплаты }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <strong>Запрашиваемая сумма:</strong>
+                    <span class="amount">{{ application.запрашиваемая_сумма }} руб.</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Дата подачи:</strong>
+                    <span>{{ application.дата_подачи|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Текущий статус:</strong>
+                    <span class="status-badge {% if application.статус == 'new' %}status-new{% elif application.статус == 'approved' %}status-approved{% else %}status-rejected{% endif %}">
+                        {{ application.get_статус_display }}
+                    </span>
+                </div>
+                {% if application.дата_рассмотрения %}
+                <div class="detail-item">
+                    <strong>Дата рассмотрения:</strong>
+                    <span>{{ application.дата_рассмотрения|date:"d.m.Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- БЛОК С ДОКУМЕНТАМИ ДЛЯ СПЕЦИАЛИСТА -->
+        <div class="detail-section">
+            <h2>📎 Прикрепленные документы</h2>
+            {% if application.документы.all %}
+                <div class="documents-list">
+                    {% for doc in application.документы.all %}
+                    <div class="document-item">
+                        <div class="document-icon">
+                            {% if doc.тип == 'dogovor' %}📄
+                            {% elif doc.тип == 'prikaz' %}📋
+                            {% elif doc.тип == 'tabel' %}📊
+                            {% elif doc.тип == 'akt' %}✅
+                            {% elif doc.тип == 'schet' %}💰
+                            {% elif doc.тип == 'raschet' %}🧮
+                            {% elif doc.тип == 'vedomost' %}📝
+                            {% else %}📎
+                            {% endif %}
+                        </div>
+                        <div class="document-info">
+                            <div class="document-header">
+                                <strong>{{ doc.get_тип_display|default:"Документ" }}</strong>
+                                <span class="document-name">{{ doc.название }}</span>
+                            </div>
+                            {% if doc.описание %}
+                            <p class="document-description">{{ doc.описание }}</p>
+                            {% endif %}
+                            <div class="document-meta">
+                                <span class="document-date">Загружен: {{ doc.дата_загрузки|date:"d.m.Y H:i" }}</span>
+                                <a href="{% url 'download_application_document' doc.pk %}" class="btn-download" target="_blank">
+                                    ⬇️ Скачать
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-documents">Документы не прикреплены</p>
+            {% endif %}
+        </div>
+
+        <!-- Кнопки действий (только для новых заявок) -->
+        {% if application.статус == 'new' %}
+        <div class="action-buttons">
+            <form method="post" action="{% url 'budget_application_approve' application.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success" onclick="return confirm('Вы уверены, что хотите принять эту заявку?')">
+                    ✅ Принять заявку
+                </button>
+            </form>
+            <button type="button" class="btn btn-danger" onclick="openRejectModal({{ application.id }})">
+                ❌ Отклонить заявку
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- Информация о рассмотрении (для принятых/отклоненных заявок) -->
+        {% if application.статус != 'new' %}
+        <div class="review-info">
+            <h3>Заявка уже рассмотрена</h3>
+            <p>Статус: 
+                <strong>
+                    {% if application.статус == 'approved' %}
+                        Принята
+                    {% else %}
+                        Отклонена
+                    {% endif %}
+                </strong>
+            </p>
+            <p>Дата рассмотрения: {{ application.дата_рассмотрения|date:"d.m.Y H:i" }}</p>
+            {% if application.статус == 'rejected' and application.комментарий_отклонения %}
+            <div class="rejection-reason">
+                <strong>Причина отклонения:</strong>
+                <p>{{ application.комментарий_отклонения }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="navigation-buttons">
+        <a href="{% url 'budget_applications' %}" class="btn btn-secondary">← Назад к списку заявок</a>
+    </div>
+</div>
+
+<!-- Модальное окно для отклонения заявки -->
+<div id="rejectModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRejectModal()">&times;</span>
+        <h3>Причина отклонения заявки</h3>
+        <textarea id="rejectComment" class="modal-textarea" placeholder="Укажите причину отклонения..."></textarea>
+        <div class="modal-buttons">
+            <button type="button" class="btn btn-danger" onclick="submitRejection()">Отклонить</button>
+            <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.application-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.application-detail {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.detail-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-section:last-child {
+    border-bottom: none;
+}
+
+.detail-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.detail-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item strong {
+    color: #666;
+    min-width: 200px;
+}
+
+.amount {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 18px;
+}
+
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+}
+
+.status-new { background: #e74c3c; }
+.status-approved { background: #27ae60; }
+.status-rejected { background: #95a5a6; }
+
+/* Стили для документов */
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.document-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    transition: all 0.3s ease;
+}
+
+.document-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.document-icon {
+    font-size: 24px;
+    min-width: 40px;
+    text-align: center;
+    padding-top: 5px;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.document-header strong {
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.document-name {
+    color: #666;
+    font-size: 14px;
+}
+
+.document-description {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin: 5px 0 8px 0;
+    font-style: italic;
+}
+
+.document-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.document-date {
+    color: #95a5a6;
+    font-size: 12px;
+}
+
+.btn-download {
+    background: #27ae60;
+    color: white;
+    padding: 6px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.3s;
+}
+
+.btn-download:hover {
+    background: #219a52;
+}
+
+.no-documents {
+    text-align: center;
+    color: #95a5a6;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.review-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.rejection-reason {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8d7da;
+    border-radius: 4px;
+    color: #721c24;
+    text-align: left;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 25px;
+    border-radius: 8px;
+    width: 500px;
+    max-width: 90%;
+}
+
+.modal-textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+</style>
+
+<script>
+let currentApplicationId = null;
+
+function openRejectModal(applicationId) {
+    currentApplicationId = applicationId;
+    document.getElementById('rejectModal').style.display = 'block';
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').style.display = 'none';
+    document.getElementById('rejectComment').value = '';
+}
+
+function submitRejection() {
+    const comment = document.getElementById('rejectComment').value.trim();
+    if (!comment) {
+        alert('Пожалуйста, укажите причину отклонения');
+        return;
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/budget/application/${currentApplicationId}/reject/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ комментарий: comment })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    });
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('rejectModal');
+    if (event.target == modal) {
+        closeRejectModal();
+    }
+}
+</script>
+{% endblock %}

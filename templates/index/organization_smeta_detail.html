@@ -1,0 +1,469 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Смета: {{ smeta.название }}</h1>
+        <div class="header-actions">
+            <a href="{% url 'organization_smeti_list' %}" class="btn btn-secondary">← Назад к списку</a>
+            
+            {% if can_send %}
+            <a href="{% url 'smeta_create_document' smeta.pk %}" class="btn btn-info">
+                📄 Создать документы
+            </a>
+            {% endif %}
+        
+            {% if can_send %}
+            <a href="{% url 'organization_smeta_send' smeta.pk %}" class="btn btn-success" onclick="return confirm('Отправить смету в бюджетный отдел?')">
+                📤 Отправить смету
+            </a>
+            {% endif %}
+            
+            {% if can_edit %}
+            <a href="{% url 'organization_smeta_edit_projects' smeta.pk %}" class="btn btn-primary">
+                ✏️ Редактировать проекты
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="smeta-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Статус:</strong>
+                <span class="status-badge status-{{ smeta.статус }}">
+                    {{ smeta.get_статус_display }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>Год:</strong>
+                <span>{{ smeta.год }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Дата создания:</strong>
+                <span>{{ smeta.дата_создания|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% if smeta.дата_отправки %}
+            <div class="info-item">
+                <strong>Дата отправки:</strong>
+                <span>{{ smeta.дата_отправки|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if smeta.комментарий %}
+    <div class="comment-section admin-comment">
+        <h3>Комментарий:</h3>
+        <p>{{ smeta.комментарий }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Блок с документами -->
+    <div class="documents-section">
+        <h3>Документы сметы</h3>
+        <div class="documents-grid">
+            <!-- Смета -->
+            <div class="document-card">
+                <div class="document-icon">📊</div>
+                <div class="document-info">
+                    <div class="document-name">Смета на {{ smeta.год }} год</div>
+                    <div class="document-meta">с синей гербовой печатью</div>
+                </div>
+                <a href="{% url 'download_smeta_pdf' smeta.pk %}" class="btn btn-small btn-primary">
+                    Скачать
+                </a>
+            </div>
+
+            <!-- Письмо-заявка (если есть) -->
+            {% for doc in smeta.документы.all %}
+                {% if doc.тип == 'zayavka' %}
+                <div class="document-card">
+                    <div class="document-icon">📝</div>
+                    <div class="document-info">
+                        <div class="document-name">{{ doc.название }}</div>
+                        <div class="document-meta">с синей гербовой печатью</div>
+                    </div>
+                    <a href="{% url 'download_document' doc.pk %}" class="btn btn-small btn-primary">
+                        Скачать
+                    </a>
+                </div>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Плейсхолдер для письма-заявки (показывается только если можно отправить) -->
+            {% if can_send %}
+            <div class="document-card document-placeholder">
+                <div class="document-icon">📄</div>
+                <div class="document-info">
+                    <div class="document-name">Письмо-заявка</div>
+                    <div class="document-meta">ещё не создана</div>
+                </div>
+                <a href="{% url 'smeta_create_document' smeta.pk %}" class="btn btn-small btn-success">
+                    Создать
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="projects-section">
+        <h3>Проекты в смете</h3>
+        {% if smeta.проекты.all %}
+            <table class="projects-table">
+                <thead>
+                    <tr>
+                        <th>Название проекта</th>
+                        <th>Описание</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in smeta.проекты.all %}
+                    <tr>
+                        <td>{{ project.название }}</td>
+                        <td>{{ project.описание|default:"-" }}</td>
+                        <td class="amount">{{ project.запрашиваемая_сумма }} руб.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2"><strong>ИТОГО:</strong></td>
+                        <td class="amount total">{{ smeta.общая_сумма }} руб.</td>
+                    </tr>
+                </tfoot>
+            </table>
+        {% else %}
+            <div class="no-projects">
+                <p>В смете пока нет проектов</p>
+                {% if can_edit %}
+                <a href="{% url 'organization_smeta_edit_projects' smeta.pk %}" class="btn btn-primary">
+                    ➕ Добавить проекты
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if can_edit and smeta.проекты.all %}
+    <div class="add-project-form">
+        <h3>Добавить новый проект</h3>
+        <form method="post" class="project-form">
+            {% csrf_token %}
+            <input type="hidden" name="add_project" value="1">
+            
+            <div class="form-group">
+                <label for="{{ project_form.название.id_for_label }}">Название проекта:</label>
+                {{ project_form.название }}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ project_form.описание.id_for_label }}">Описание:</label>
+                {{ project_form.описание }}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ project_form.запрашиваемая_сумма.id_for_label }}">Сумма:</label>
+                {{ project_form.запрашиваемая_сумма }}
+            </div>
+            
+            <button type="submit" class="btn btn-success">Добавить проект</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.smeta-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item strong {
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-черновик { background: #e9ecef; color: #495057; }
+.status-отправлена { background: #cce5ff; color: #004085; }
+.status-на_рассмотрении { background: #fff3cd; color: #856404; }
+.status-одобрена { background: #d4edda; color: #155724; }
+.status-отклонена { background: #f8d7da; color: #721c24; }
+
+.comment-section {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.comment-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.comment-section p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.admin-comment {
+    background: #e8f4fd;
+    border-left: 4px solid #3498db;
+}
+
+/* Стили для документов */
+.documents-section {
+    margin-bottom: 30px;
+}
+
+.documents-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.document-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.document-placeholder {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+}
+
+.document-icon {
+    font-size: 40px;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.document-meta {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.projects-section {
+    margin-bottom: 30px;
+}
+
+.projects-section h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.projects-table th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+}
+
+.projects-table td {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.projects-table tfoot td {
+    background: #f8f9fa;
+    font-weight: bold;
+}
+
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.amount.total {
+    font-size: 18px;
+}
+
+.no-projects {
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-project-form {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 30px;
+}
+
+.add-project-form h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+}
+
+.project-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #229954;
+}
+
+.btn-info {
+    background: #00bcd4;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #00acc1;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,81 @@
+<form id="userForm" enctype="multipart/form-data" method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div>
+        {{ form.Имя.label_tag }}<br>
+        {{ form.Имя }}
+        {{ form.Имя.errors }}
+    </div>
+
+    <div>
+        {{ form.Фамилия.label_tag }}<br>
+        {{ form.Фамилия }}
+        {{ form.Фамилия.errors }}
+    </div>
+
+    <div>
+        {{ form.Отчество.label_tag }}<br>
+        {{ form.Отчество }}
+        {{ form.Отчество.errors }}
+    </div>
+
+    <div>
+        {{ form.Роль.label_tag }}<br>
+        {{ form.Роль }}
+        {{ form.Роль.errors }}
+    </div>
+
+    <div>
+        {{ form.Логин.label_tag }}<br>
+        {{ form.Логин }}
+        {{ form.Логин.errors }}
+    </div>
+
+    <div style="position: relative;">
+        {{ form.Пароль.label_tag }}<br>
+        {{ form.Пароль }}
+        <span id="togglePassword" style="position: absolute; right: 10px; top: 37px; cursor: pointer; user-select: none; color: #888;">&#128065;</span>
+        {{ form.Пароль.errors }}
+    </div>
+
+    <div>
+        {{ form.Телефон.label_tag }}<br>
+        {{ form.Телефон }}
+        {{ form.Телефон.errors }}
+    </div>
+
+    <div>
+        {{ form.Отдел.label_tag }}<br>
+        {{ form.Отдел }}
+        {{ form.Отдел.errors }}
+    </div>
+
+    <div>
+        {{ form.Фото.label_tag }}<br>
+        {{ form.Фото }}
+        {{ form.Фото.errors }}
+    </div>
+
+    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="submit" class="btn btn-save">Сохранить</button>
+        {% if user %}
+        <button type="button" class="btn btn-delete" id="btnDelete">Удалить</button>
+        {% endif %}
+        <button type="button" class="btn btn-cancel" id="btnCancel">Отмена</button>
+    </div>
+
+    <div class="error-message" id="formErrors" style="margin-top:10px; color:red;"></div>
+</form>
+
+<script>
+    // Toggle password visibility (для поля пароль)
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordField = document.querySelector('#id_Пароль');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        this.textContent = type === 'password' ? '\u{1F441}' : '\u{1F576}';
+    });
+</script>

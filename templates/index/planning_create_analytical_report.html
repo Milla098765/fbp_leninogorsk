@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание аналитического отчета</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-back {
+            background: #6c757d;
+        }
+        .btn-back:hover {
+            background: #5a6268;
+        }
+        .btn-submit {
+            background: #27ae60;
+        }
+        .btn-submit:hover {
+            background: #219a52;
+        }
+        
+        /* Форма */
+        .form-container {
+            margin-top: 30px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group select[multiple] {
+            height: 150px;
+        }
+        .form-help {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .info-card {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196f3;
+        }
+        .info-card h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Создание аналитического отчета</h1>
+            <a href="{% url 'planning_analytical_reports_list' %}" class="btn btn-back">← Назад к отчетам</a>
+        </div>
+
+        <div class="info-card">
+            <h3>💡 О аналитических отчетах</h3>
+            <p>Аналитические отчеты включают сравнение плановых и фактических показателей, графики динамики выплат и детальный анализ выполнения бюджета.</p>
+            <p><strong>Особенности:</strong></p>
+            <ul>
+                <li>Сравнение плана и факта</li>
+                <li>Графики динамики выплат</li>
+                <li>Анализ отклонений</li>
+                <li>Автоматический расчет показателей</li>
+            </ul>
+        </div>
+
+        <div class="form-container">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="{{ form.название.id_for_label }}">Название отчета *</label>
+                    {{ form.название }}
+                    <div class="form-help">Укажите понятное название для идентификации отчета</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.дата_начала.id_for_label }}">Дата начала периода *</label>
+                        {{ form.дата_начала }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.дата_окончания.id_for_label }}">Дата окончания периода *</label>
+                        {{ form.дата_окончания }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.организации.id_for_label }}">Организации для анализа</label>
+                    {{ form.организации }}
+                    <div class="form-help">Выберите организации для включения в анализ (для выбора нескольких: Ctrl+Click)</div>
+                </div>
+
+                <div style="text-align: center; margin-top: 40px;">
+                    <button type="submit" class="btn btn-submit">📈 Создать аналитический отчет</button>
+                    <a href="{% url 'planning_analytical_reports_list' %}" class="btn btn-back">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Простая валидация дат
+        document.addEventListener('DOMContentLoaded', function() {
+            const startDateInput = document.querySelector('input[name="дата_начала"]');
+            const endDateInput = document.querySelector('input[name="дата_окончания"]');
+            
+            if (startDateInput && endDateInput) {
+                startDateInput.addEventListener('change', function() {
+                    if (endDateInput.value && startDateInput.value > endDateInput.value) {
+                        alert('Дата начала не может быть позже даты окончания');
+                        startDateInput.value = '';
+                    }
+                });
+                
+                endDateInput.addEventListener('change', function() {
+                    if (startDateInput.value && startDateInput.value > endDateInput.value) {
+                        alert('Дата окончания не может быть раньше даты начала');
+                        endDateInput.value = '';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

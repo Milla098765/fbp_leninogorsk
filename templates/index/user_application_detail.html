@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Просмотр заявки #{{ application.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .detail-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-item strong {
+            color: #666;
+            min-width: 200px;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+        }
+        .status-new { background: #e74c3c; }
+        .status-approved { background: #27ae60; }
+        .status-rejected { background: #95a5a6; }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-export {
+            background: #28a745;
+        }
+        .btn-export:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Заявка #{{ application.id }}</h1>
+            <div>
+                <a href="{% url 'user_dashboard' %}" class="btn">← Назад</a>
+                <button onclick="exportToWord()" class="btn btn-export">📄 Экспорт в Word</button>
+            </div>
+        </div>
+
+        <!-- Информация об организации -->
+        <div class="section">
+            <h2>Информация об организации</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Организация:</strong>
+                    <span>{{ application.полное_наименование }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>ИНН:</strong>
+                    <span>{{ application.инн }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Счет организации:</strong>
+                    <span>{{ application.счет_организации }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о получателе -->
+        <div class="section">
+            <h2>Информация о получателе</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Получатель:</strong>
+                    <span>{{ application.получатель }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Счет получателя:</strong>
+                    <span>{{ application.счет_получателя }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Данные заявки -->
+        <div class="section">
+            <h2>Данные заявки</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <strong>Вид выплаты:</strong>
+                    <span>
+                        {% if application.вид_выплаты %}
+                            {{ application.вид_выплаты }}
+                        {% else %}
+                            {{ application.другой_вид_выплаты }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <strong>Запрашиваемая сумма:</strong>
+                    <span>{{ application.запрашиваемая_сумма }} руб.</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Дата подачи:</strong>
+                    <span>{{ application.дата_подачи|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Статус:</strong>
+                    <span class="status-badge {% if application.статус == 'new' %}status-new{% elif application.статус == 'approved' %}status-approved{% else %}status-rejected{% endif %}">
+                        {% if application.статус == 'new' %}
+                            Новая
+                        {% elif application.статус == 'approved' %}
+                            Принята
+                        {% else %}
+                            Отклонена
+                        {% endif %}
+                    </span>
+                </div>
+                {% if application.дата_рассмотрения %}
+                <div class="detail-item">
+                    <strong>Дата рассмотрения:</strong>
+                    <span>{{ application.дата_рассмотрения|date:"d.m.Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function exportToWord() {
+            // Создаем содержимое для Word
+            const content = `
+                Заявка #{{ application.id }}
+                
+                ИНФОРМАЦИЯ ОБ ОРГАНИЗАЦИИ:
+                Организация: {{ application.полное_наименование }}
+                ИНН: {{ application.инн }}
+                Счет организации: {{ application.счет_организации }}
+                
+                ИНФОРМАЦИЯ О ПОЛУЧАТЕЛЕ:
+                Получатель: {{ application.получатель }}
+                Счет получателя: {{ application.счет_получателя }}
+                
+                ДАННЫЕ ЗАЯВКИ:
+                Вид выплаты: {% if application.вид_выплаты %}{{ application.вид_выплаты }}{% else %}{{ application.другой_вид_выплаты }}{% endif %}
+                Запрашиваемая сумма: {{ application.запрашиваемая_сумма }} руб.
+                Дата подачи: {{ application.дата_подачи|date:"d.m.Y H:i" }}
+                Статус: {% if application.статус == 'new' %}Новая{% elif application.статус == 'approved' %}Принята{% else %}Отклонена{% endif %}
+                {% if application.дата_рассмотрения %}Дата рассмотрения: {{ application.дата_рассмотрения|date:"d.m.Y H:i" }}{% endif %}
+            `;
+
+            // Создаем Blob с содержимым
+            const blob = new Blob([content], { type: 'application/msword' });
+            
+            // Создаем ссылку для скачивания
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Заявка_{{ application.id }}.doc';
+            
+            // Кликаем по ссылке для скачивания
+            link.click();
+            
+            // Очищаем URL
+            URL.revokeObjectURL(link.href);
+        }
+    </script>
+</body>
+</html>

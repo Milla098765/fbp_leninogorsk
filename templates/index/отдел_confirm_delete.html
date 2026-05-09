@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Удаление отдела</title>
+</head>
+<body>
+    <h1>Удалить отдел "{{ department.Название }}"?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Да, удалить</button>
+        <button type="button" onclick="location.href='{% url 'отделы_list' %}'">Отмена</button>
+    </form>
+</body>
+</html>

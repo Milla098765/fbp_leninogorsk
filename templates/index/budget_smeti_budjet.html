@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="smeti-container">
+    <div class="page-header">
+        <h1>Сметы бюджета</h1>
+        <div class="header-actions">
+            <a href="{% url 'budget_smeta_create' %}" class="btn btn-primary">➕ Новая смета</a>
+            <a href="{% url 'budget_smeta_from_payments' %}" class="btn btn-info">📊 На основе выплат</a>
+            <a href="{% url 'budget_smeta_from_administration' %}" class="btn btn-warning">🏛️ Из администрации</a>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.черновики }}</div>
+            <div class="stat-label">Черновики</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.утверждены }}</div>
+            <div class="stat-label">Утверждены</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.отправлены }}</div>
+            <div class="stat-label">Отправлены</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.всего }}</div>
+            <div class="stat-label">Всего</div>
+        </div>
+    </div>
+
+    <!-- Список смет -->
+    {% if сметы %}
+    <div class="smeti-grid">
+        {% for смета in сметы %}
+        <div class="smeta-card {% if смета.статус == 'черновик' %}draft{% elif смета.статус == 'утверждена' %}approved{% else %}sent{% endif %}">
+            <div class="card-header">
+                <h3>Смета на {{ смета.год }} год</h3>
+                <span class="status-badge status-{{ смета.статус }}">
+                    {{ смета.get_статус_display }}
+                </span>
+            </div>
+            
+            <div class="card-body">
+                <div class="info-row">
+                    <span class="info-label">Дата создания:</span>
+                    <span>{{ смета.дата_создания|date:"d.m.Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Статей:</span>
+                    <span>{{ смета.статьи.count }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Общая сумма:</span>
+                    <span class="amount">{{ смета.общая_сумма|floatformat:2 }} руб.</span>
+                </div>
+                
+                {% if смета.создана_на_основе_выплат %}
+                <div class="info-row highlight">
+                    <span class="info-label">На основе выплат:</span>
+                    <span>{{ смета.исходный_год }} года</span>
+                </div>
+                {% endif %}
+                
+                {% if смета.смета_администрации %}
+                <div class="info-row highlight">
+                    <span class="info-label">Из администрации:</span>
+                    <span>{{ смета.смета_администрации.название }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer">
+                <a href="{% url 'budget_smeta_budjet_detail' смета.pk %}" class="btn btn-sm btn-primary">Подробнее</a>
+                
+                {% if смета.статус == 'черновик' %}
+                <a href="{% url 'budget_smeta_create_docs' смета.pk %}" class="btn btn-sm btn-success" onclick="return confirm('Создать документы и отправить?')">
+                    📄 Создать и отправить
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>У вас пока нет смет</p>
+        <div class="empty-actions">
+            <a href="{% url 'budget_smeta_create' %}" class="btn btn-primary">➕ Создать новую</a>
+            <a href="{% url 'budget_smeta_from_payments' %}" class="btn btn-info">📊 На основе выплат</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.smeti-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-warning {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+    border-left: 4px solid #3498db;
+}
+
+.stat-card:nth-child(1) { border-left-color: #f39c12; }
+.stat-card:nth-child(2) { border-left-color: #27ae60; }
+.stat-card:nth-child(3) { border-left-color: #3498db; }
+.stat-card:nth-child(4) { border-left-color: #9b59b6; }
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.smeti-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.smeta-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.smeta-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.smeta-card.draft {
+    border-top: 4px solid #f39c12;
+}
+
+.smeta-card.approved {
+    border-top: 4px solid #27ae60;
+}
+
+.smeta-card.sent {
+    border-top: 4px solid #3498db;
+}
+
+.card-header {
+    padding: 15px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 18px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+}
+
+.status-черновик {
+    background: #f39c12;
+}
+
+.status-утверждена {
+    background: #27ae60;
+}
+
+.status-отправлена {
+    background: #3498db;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.highlight {
+    background: #e8f4fd;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.card-footer {
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.empty-state p {
+    color: #666;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.empty-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .smeti-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}

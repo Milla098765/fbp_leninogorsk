@@ -1,0 +1,336 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="page-header">
+        <h1>Заявка #{{ заявка.id }}</h1>
+        <div class="header-actions">
+            <a href="{% url 'organization_applications' %}" class="btn btn-secondary">← Назад к списку</a>
+            {% if заявка.статус == 'new' %}
+            <a href="{% url 'upload_application_document' заявка.pk %}" class="btn btn-primary">
+                📎 Добавить документ
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="application-info">
+        <!-- Информация об организации -->
+        <div class="info-section">
+            <h2>Информация об организации</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Организация:</label>
+                    <span>{{ заявка.полное_наименование }}</span>
+                </div>
+                <div class="info-item">
+                    <label>ИНН:</label>
+                    <span>{{ заявка.инн }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Счет организации:</label>
+                    <span>{{ заявка.счет_организации }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о получателе -->
+        <div class="info-section">
+            <h2>Информация о получателе</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Получатель:</label>
+                    <span>{{ заявка.получатель }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Счет получателя:</label>
+                    <span>{{ заявка.счет_получателя }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Данные заявки -->
+        <div class="info-section">
+            <h2>Данные заявки</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Вид выплаты:</label>
+                    <span>
+                        {% if заявка.вид_выплаты %}
+                            {{ заявка.вид_выплаты }}
+                        {% else %}
+                            {{ заявка.другой_вид_выплаты }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <label>Сумма:</label>
+                    <span class="amount">{{ заявка.запрашиваемая_сумма }} руб.</span>
+                </div>
+                <div class="info-item">
+                    <label>Дата подачи:</label>
+                    <span>{{ заявка.дата_подачи|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Статус:</label>
+                    <span class="status-badge {% if заявка.статус == 'new' %}status-new{% elif заявка.статус == 'approved' %}status-approved{% else %}status-rejected{% endif %}">
+                        {{ заявка.get_статус_display }}
+                    </span>
+                </div>
+                {% if заявка.дата_рассмотрения %}
+                <div class="info-item">
+                    <label>Дата рассмотрения:</label>
+                    <span>{{ заявка.дата_рассмотрения|date:"d.m.Y H:i" }}</span>
+                </div>
+                {% endif %}
+                {% if заявка.статус == 'rejected' and заявка.комментарий_отклонения %}
+                <div class="info-item rejection">
+                    <label>Причина отклонения:</label>
+                    <span>{{ заявка.комментарий_отклонения }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- БЛОК С ДОКУМЕНТАМИ -->
+        <div class="info-section">
+            <h2>📎 Прикрепленные документы</h2>
+            {% if заявка.документы.all %}
+                <div class="documents-list">
+                    {% for doc in заявка.документы.all %}
+                    <div class="document-item">
+                        <div class="document-icon">
+                            {% if doc.тип == 'dogovor' %}📄
+                            {% elif doc.тип == 'prikaz' %}📋
+                            {% elif doc.тип == 'tabel' %}📊
+                            {% elif doc.тип == 'akt' %}✅
+                            {% elif doc.тип == 'schet' %}💰
+                            {% elif doc.тип == 'raschet' %}🧮
+                            {% elif doc.тип == 'vedomost' %}📝
+                            {% else %}📎
+                            {% endif %}
+                        </div>
+                        <div class="document-info">
+                            <div class="document-header">
+                                <strong>{{ doc.get_тип_display }}</strong>
+                                <span>{{ doc.название }}</span>
+                            </div>
+                            {% if doc.описание %}
+                            <p>{{ doc.описание }}</p>
+                            {% endif %}
+                            <div class="document-meta">
+                                <small>Загружен: {{ doc.дата_загрузки|date:"d.m.Y H:i" }}</small>
+                                <div class="document-actions">
+                                    <!-- ИСПРАВЛЕНО: используем правильное имя URL для документов заявок -->
+                                    <a href="{% url 'download_application_document' doc.pk %}" class="btn-download" target="_blank">
+                                        ⬇️ Скачать
+                                    </a>
+                                    {% if заявка.статус == 'new' %}
+                                    <form method="post" action="{% url 'delete_application_document' doc.pk %}" style="display: inline;" onsubmit="return confirm('Удалить документ?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-delete">🗑️</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-documents">Документы не прикреплены</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.info-section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+}
+
+.info-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: bold;
+    color: #666;
+    min-width: 150px;
+}
+
+.amount {
+    font-weight: bold;
+    color: #27ae60;
+    font-size: 16px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-new {
+    background: #e74c3c;
+}
+
+.status-approved {
+    background: #27ae60;
+}
+
+.status-rejected {
+    background: #95a5a6;
+}
+
+.rejection {
+    background: #f8d7da;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Стили для документов */
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.document-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #3498db;
+}
+
+.document-icon {
+    font-size: 24px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    flex-wrap: wrap;
+}
+
+.document-header strong {
+    color: #2c3e50;
+}
+
+.document-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.document-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-download {
+    background: #27ae60;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.no-documents {
+    text-align: center;
+    color: #95a5a6;
+    padding: 20px;
+}
+</style>
+{% endblock %}

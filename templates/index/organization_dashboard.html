@@ -1,0 +1,459 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Личный кабинет организации</h1>
+    
+    <div class="org-info">
+        <h2>Информация об организации</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Полное наименование:</strong>
+                <span>{{ organization.ПолноеНаименование }}</span>
+            </div>
+            <div class="info-item">
+                <strong>ИНН:</strong>
+                <span>{{ organization.ИНН }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Счет организации:</strong>
+                <span>{{ organization.СчетОрганизации }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Логин:</strong>
+                <span>{{ organization.Логин }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- БЛОК ДЛЯ АДМИНИСТРАЦИИ (только сметы, без заявок) -->
+    {% if organization.Логин == 'Administracia' %}
+    <div class="admin-section">
+        <h2>🏛️ Управление сметами</h2>
+        <p class="admin-desc">Создавайте и управляйте сметами затрат для бюджета города</p>
+        <div class="button-group">
+            <a href="{% url 'organization_smeti_list' %}" class="btn btn-primary">
+                📊 Мои сметы
+            </a>
+            <a href="{% url 'organization_smeta_create' %}" class="btn btn-success">
+                ➕ Создать новую смету
+            </a>
+        </div>
+    </div>
+
+    <!-- БЛОК ДЛЯ ОБЫЧНЫХ ОРГАНИЗАЦИЙ (только заявки, без смет) -->
+    {% else %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Всего заявок</h3>
+            <div class="stat-number">{{ total_applications }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Новые заявки</h3>
+            <div class="stat-number">{{ new_applications }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Принятые заявки</h3>
+            <div class="stat-number">{{ approved_applications }}</div>
+        </div>
+    </div>
+
+    <div class="recent-applications">
+        <h2>Последние заявки</h2>
+        {% if applications %}
+            <div class="applications-list">
+                {% for application in applications|slice:":3" %}
+                <div class="application-item {% if application.статус == 'new' %}status-new{% elif application.статус == 'approved' %}status-approved{% else %}status-rejected{% endif %}">
+                    <div class="application-header">
+                        <h4>Заявка #{{ application.id }}</h4>
+                        <span class="status-badge {% if application.статус == 'new' %}status-new{% elif application.статус == 'approved' %}status-approved{% else %}status-rejected{% endif %}">
+                            {% if application.статус == 'new' %}
+                                Новая
+                            {% elif application.статус == 'approved' %}
+                                Принята
+                            {% else %}
+                                Отклонена
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="application-details">
+                        <div class="detail">
+                            <strong>Вид выплаты:</strong>
+                            <span>
+                                {% if application.вид_выплаты %}
+                                    {{ application.вид_выплаты }}
+                                {% else %}
+                                    {{ application.другой_вид_выплаты }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail">
+                            <strong>Сумма:</strong>
+                            <span class="amount">{{ application.запрашиваемая_сумма|floatformat:2 }} руб.</span>
+                        </div>
+                        <div class="detail">
+                            <strong>Дата подачи:</strong>
+                            <span>{{ application.дата_подачи|date:"d.m.Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if applications.count > 3 %}
+            <div class="view-all">
+                <a href="{% url 'organization_applications' %}" class="btn-view-all">Показать все заявки →</a>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-applications">
+                <p>📭 У вас пока нет заявок.</p>
+                <a href="{% url 'application_create' %}" class="btn btn-primary" style="margin-top: 15px;">Подать первую заявку</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'application_create' %}" class="btn btn-primary">📝 Подать новую заявку</a>
+        <a href="{% url 'organization_applications' %}" class="btn btn-secondary">📋 Все заявки</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.dashboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 28px;
+    border-left: 4px solid #667eea;
+    padding-left: 15px;
+}
+
+.org-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.org-info h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item strong {
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Стили для секции администрации */
+.admin-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 35px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.admin-section h2 {
+    color: white;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.admin-desc {
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 28px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: rgba(255,255,255,0.95);
+    color: #667eea;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-primary:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.btn-success {
+    background: rgba(72, 187, 120, 0.95);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #48bb78;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+/* Статистика для обычных организаций */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    color: #718096;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: bold;
+    color: #667eea;
+}
+
+/* Список заявок */
+.recent-applications {
+    margin-bottom: 30px;
+}
+
+.recent-applications h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.applications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.application-item {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid #cbd5e0;
+    transition: all 0.3s;
+}
+
+.application-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.application-item.status-new {
+    border-left-color: #f39c12;
+}
+
+.application-item.status-approved {
+    border-left-color: #48bb78;
+}
+
+.application-item.status-rejected {
+    border-left-color: #f56565;
+}
+
+.application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.application-header h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+}
+
+.status-badge.status-new {
+    background: #f39c12;
+}
+
+.status-badge.status-approved {
+    background: #48bb78;
+}
+
+.status-badge.status-rejected {
+    background: #f56565;
+}
+
+.application-details {
+    display: grid;
+    gap: 8px;
+}
+
+.detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.detail strong {
+    color: #718096;
+    min-width: 120px;
+    font-size: 13px;
+}
+
+.amount {
+    font-weight: 700;
+    color: #48bb78;
+    font-size: 15px;
+}
+
+.view-all {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.btn-view-all {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.btn-view-all:hover {
+    text-decoration: underline;
+}
+
+.no-applications {
+    text-align: center;
+    padding: 50px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.no-applications p {
+    color: #718096;
+    font-size: 16px;
+    margin: 0;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .btn {
+        justify-content: center;
+    }
+    
+    .detail {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

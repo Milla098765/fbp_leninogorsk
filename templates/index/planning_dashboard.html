@@ -1,0 +1,593 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет - Планирование и анализ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Стили для профиля с фото */
+        .user-profile {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .user-avatar {
+            flex-shrink: 0;
+        }
+
+        .avatar-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .avatar-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .avatar-emoji {
+            font-size: 4rem;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-item strong {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #718096;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-item span {
+            font-size: 1rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #718096;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            margin-top: 8px;
+        }
+
+        .positive {
+            color: #48bb78;
+        }
+
+        .negative {
+            color: #f56565;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .action-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .action-card p {
+            color: #718096;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-analysis {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .btn-analysis:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .btn-reports {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-reports:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .reports-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .report-item {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .report-item:hover {
+            background: white;
+            transform: translateX(5px);
+        }
+
+        .report-info h4 {
+            margin: 0 0 8px 0;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .report-meta {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .no-reports {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .no-reports p {
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background: #f7fafc;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-box h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .info-box p {
+            color: #4a5568;
+            margin: 10px 0;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 968px) {
+            body {
+                padding: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .report-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .user-profile {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .user-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Личный кабинет специалиста по планированию и анализу</h1>
+            <a href="{% url 'logout' %}" class="btn btn-danger">
+                Выйти
+            </a>
+        </div>
+
+        <!-- Информация о пользователе с ФОТО -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Информация о пользователе</h2>
+            </div>
+            <div class="card-body">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {% if user.Фото %}
+                            <img src="{{ user.Фото.url }}" alt="Фото {{ user.Фамилия }}" class="avatar-img">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                <span class="avatar-emoji">👤</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-details">
+                        <div class="user-info">
+                            <div class="info-item">
+                                <strong>Фамилия</strong>
+                                <span>{{ user.Фамилия }}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Имя</strong>
+                                <span>{{ user.Имя }}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Отчество</strong>
+                                <span>{{ user.Отчество|default:"Не указано" }}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Должность</strong>
+                                <span>Специалист по планированию и анализу</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Отдел</strong>
+                                <span>{{ user.Отдел.Название|default:"Не назначен" }}</span>
+                            </div>
+                            <div class="info-item">
+                                <strong>Период</strong>
+                                <span>{{ название_месяца }} {{ текущий_год }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ сумма_выплат_месяц|floatformat:2 }} ₽</div>
+                <div class="stat-label">Фактические выплаты</div>
+                <div class="stat-info">за текущий месяц</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">{{ ожидаемая_сумма_месяц|floatformat:2 }} ₽</div>
+                <div class="stat-label">План (ожидаемая сумма)</div>
+                <div class="stat-info">на текущий месяц</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value {% if отклонение >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ отклонение|floatformat:2 }} ₽
+                </div>
+                <div class="stat-label">Отклонение (план - факт)</div>
+                <div class="stat-info">{% if отклонение >= 0 %}Экономия{% else %}Перерасход{% endif %}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">{{ количество_выплат_месяц }}</div>
+                <div class="stat-label">Количество выплат</div>
+                <div class="stat-info">в текущем месяце</div>
+            </div>
+        </div>
+
+        <!-- Основные действия -->
+        <div class="action-grid">
+            <div class="action-card">
+                <h3>Анализ выплат</h3>
+                <p>Детальный анализ выполненных выплат с фильтрацией по датам и организациям</p>
+                <a href="{% url 'planning_payments' %}" class="btn btn-analysis">
+                    Перейти к анализу
+                </a>
+            </div>
+            
+            <div class="action-card">
+                <h3>Мои отчеты</h3>
+                <p>Просмотр созданных отчетов с аналитикой и графиками</p>
+                <a href="{% url 'planning_reports_list' %}" class="btn btn-reports">
+                    Просмотреть отчеты ({{ всего_отчетов }})
+                </a>
+            </div>
+            
+            <div class="action-card">
+                <h3>Создать отчет</h3>
+                <p>Создание нового аналитического отчета с графиками</p>
+                <a href="{% url 'planning_create_report' %}" class="btn btn-create">
+                    Создать отчет
+                </a>
+            </div>
+        </div>
+
+        <!-- Последние отчеты -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>Последние отчеты</h2>
+            </div>
+            <div class="card-body">
+                {% if отчеты %}
+                <div class="reports-list">
+                    {% for отчет in отчеты %}
+                    <div class="report-item">
+                        <div class="report-info">
+                            <h4>{{ отчет.название }}</h4>
+                            <div class="report-meta">
+                                Период: {{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }} | 
+                                Сумма: {{ отчет.общая_сумма|floatformat:2 }} ₽ | 
+                                Создан: {{ отчет.дата_создания|date:"d.m.Y H:i" }}
+                            </div>
+                        </div>
+                        <a href="{% url 'planning_report_detail' отчет.pk %}" class="btn btn-primary" style="padding: 8px 16px; font-size: 12px;">
+                            Анализ
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-reports">
+                    <p>Отчеты еще не созданы</p>
+                    <a href="{% url 'planning_create_report' %}" class="btn btn-create">Создать первый отчет</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Дополнительная информация -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3>Возможности системы</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-box">
+                    <p><strong>Анализ выплат:</strong> Фильтрация по датам, организациям, сравнение плана и факта</p>
+                    <p><strong>Создание отчетов:</strong> Аналитические отчеты с графиками "План vs Факт"</p>
+                    <p><strong>Визуализация данных:</strong> Диаграммы и графики для анализа тенденций</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.content-card, .stat-card, .action-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

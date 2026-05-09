@@ -1,0 +1,383 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ отчета - {{ отчет.название }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-back {
+            background: #6c757d;
+        }
+        .btn-back:hover {
+            background: #5a6268;
+        }
+        
+        /* Статистика */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 4px solid #3498db;
+        }
+        .stat-card.planning {
+            border-top-color: #2ecc71;
+        }
+        .stat-card.warning {
+            border-top-color: #f39c12;
+        }
+        .stat-card.danger {
+            border-top-color: #e74c3c;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .positive {
+            color: #27ae60;
+        }
+        .negative {
+            color: #e74c3c;
+        }
+        
+        /* Диаграммы */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        .chart-container h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Информация об отчете */
+        .report-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-item strong {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Анализ отчета: {{ отчет.название }}</h1>
+            <div>
+                <a href="{% url 'planning_reports_list' %}" class="btn btn-back">← Назад к отчетам</a>
+            </div>
+        </div>
+
+        <!-- Информация об отчете -->
+        <div class="report-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Период отчета:</strong>
+                    <span>{{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Общая сумма выплат:</strong>
+                    <span>{{ отчет.общая_сумма }} ₽</span>
+                </div>
+                <div class="info-item">
+                    <strong>Количество выплат:</strong>
+                    <span>{{ отчет.количество_выплат }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Дата создания:</strong>
+                    <span>{{ отчет.дата_создания|date:"d.m.Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Статистика плана vs факта -->
+        <div class="stats-section">
+            <div class="stat-card planning">
+                <div class="stat-label">Фактические выплаты</div>
+                <div class="stat-value">{{ фактическая_сумма|floatformat:2 }} ₽</div>
+                <div class="stat-label">за период отчета</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Ожидаемая сумма</div>
+                <div class="stat-value">{{ ожидаемая_сумма_периода|floatformat:2 }} ₽</div>
+                <div class="stat-label">план на период</div>
+            </div>
+            
+            <div class="stat-card {% if отклонение >= 0 %}warning{% else %}danger{% endif %}">
+                <div class="stat-label">Отклонение</div>
+                <div class="stat-value {% if отклонение >= 0 %}positive{% else %}negative{% endif %}">
+                    {{ отклонение|floatformat:2 }} ₽
+                </div>
+                <div class="stat-label">факт vs план</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Выполнение плана</div>
+                <div class="stat-value {% if процент_выполнения >= 100 %}positive{% else %}negative{% endif %}">
+                    {{ процент_выполнения|floatformat:1 }}%
+                </div>
+                <div class="stat-label">от ожидаемой суммы</div>
+            </div>
+        </div>
+
+        <!-- Диаграммы -->
+        <div class="charts-section">
+            <!-- Круговая диаграмма по видам выплат -->
+            <div class="chart-container">
+                <h3>📋 Распределение по видам выплат</h3>
+                <div class="chart-wrapper">
+                    <canvas id="typesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Столбчатая диаграмма по организациям -->
+            <div class="chart-container">
+                <h3>🏢 Топ организаций по выплатам</h3>
+                <div class="chart-wrapper">
+                    <canvas id="organizationsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- График план vs факт по месяцам -->
+            <div class="chart-container" style="grid-column: 1 / -1;">
+                <h3>📈 Динамика выплат: План vs Факт</h3>
+                <div class="chart-wrapper">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные для диаграмм из контекста Django
+        const typesData = {{ chart_data_types|safe }};
+        const organizationsData = {{ chart_data_organizations|safe }};
+        const monthlyData = {{ chart_data_monthly|safe }};
+
+        // Цвета для диаграмм
+        const colors = [
+            '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6',
+            '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad'
+        ];
+
+        // 1. Круговая диаграмма по видам выплат
+        const typesCtx = document.getElementById('typesChart').getContext('2d');
+        new Chart(typesCtx, {
+            type: 'pie',
+            data: {
+                labels: typesData.labels,
+                datasets: [{
+                    data: typesData.data,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value.toLocaleString()} ₽ (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Столбчатая диаграмма по организациям
+        const orgCtx = document.getElementById('organizationsChart').getContext('2d');
+        new Chart(orgCtx, {
+            type: 'bar',
+            data: {
+                labels: organizationsData.labels,
+                datasets: [{
+                    label: 'Сумма выплат',
+                    data: organizationsData.data,
+                    backgroundColor: '#3498db',
+                    borderColor: '#2980b9',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' ₽';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' ₽';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. График план vs факт по месяцам
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyData.labels,
+                datasets: [
+                    {
+                        label: 'Фактические выплаты',
+                        data: monthlyData.факт,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Ожидаемые выплаты',
+                        data: monthlyData.план,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' ₽';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' ₽';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

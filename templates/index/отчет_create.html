@@ -1,0 +1,446 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание отчета</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .error {
+            color: #f56565;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .current-filters {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .current-filters h3 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        .filter-item {
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .filter-item strong {
+            color: #2d3748;
+        }
+
+        .info-box {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            color: #4a5568;
+            font-size: 13px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Создание отчета</h1>
+            <div class="button-group">
+                <a href="{% url 'выплаты_list' %}" class="btn btn-secondary">
+                    ← Назад к выплатам
+                </a>
+            </div>
+        </div>
+
+        <!-- УДАЛЕН БЛОК messages -->
+
+        <!-- Информация о текущих фильтрах -->
+        {% if request.GET.date_filter or request.GET.start_date or request.GET.end_date or request.GET.организации %}
+        <div class="content-card">
+            <div class="card-header">
+                <h3>🔍 Текущие фильтры</h3>
+            </div>
+            <div class="card-body">
+                <div class="current-filters">
+                    {% if request.GET.date_filter %}
+                        <div class="filter-item">
+                            <strong>Период:</strong> 
+                            {% if request.GET.date_filter == 'today' %}Сегодня
+                            {% elif request.GET.date_filter == 'week' %}За неделю
+                            {% elif request.GET.date_filter == 'month' %}За месяц
+                            {% elif request.GET.date_filter == 'year' %}За год
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% if request.GET.start_date %}
+                        <div class="filter-item"><strong>С даты:</strong> {{ request.GET.start_date }}</div>
+                    {% endif %}
+                    {% if request.GET.end_date %}
+                        <div class="filter-item"><strong>По дату:</strong> {{ request.GET.end_date }}</div>
+                    {% endif %}
+                    {% if request.GET.организации %}
+                        <div class="filter-item">
+                            <strong>Организации:</strong> 
+                            {% for org_id in request.GET.организации %}
+                                {% for org in form.организации.field.queryset %}
+                                    {% if org.id|stringformat:"s" == org_id %}{{ org.ПолноеНаименование }}{% if not forloop.last %}, {% endif %}{% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Форма создания отчета -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>📋 Параметры отчета</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.название.id_for_label }}">Название отчета:</label>
+                        {{ form.название }}
+                        {% if form.название.errors %}
+                            <div class="error">{{ form.название.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Укажите понятное название для отчета</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.дата_начала.id_for_label }}">Дата начала периода:</label>
+                        {{ form.дата_начала }}
+                        {% if form.дата_начала.errors %}
+                            <div class="error">{{ form.дата_начала.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.дата_окончания.id_for_label }}">Дата окончания периода:</label>
+                        {{ form.дата_окончания }}
+                        {% if form.дата_окончания.errors %}
+                            <div class="error">{{ form.дата_окончания.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.организации.id_for_label }}">Организации:</label>
+                        {{ form.организации }}
+                        {% if form.организации.errors %}
+                            <div class="error">{{ form.организации.errors }}</div>
+                        {% endif %}
+                        <div class="help-text">Выберите организации для включения в отчет. Оставьте пустым для всех организаций.</div>
+                        <div class="help-text">Удерживайте Ctrl (Cmd) для выбора нескольких организаций.</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">
+                            📊 Создать отчет
+                        </button>
+                        <a href="{% url 'выплаты_list' %}" class="btn btn-secondary">
+                            Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Информация о предварительных данных -->
+        <div class="content-card">
+            <div class="card-header">
+                <h3>ℹ️ Информация</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-box">
+                    <p>📊 Отчет будет создан на основе выплат со статусом <strong>"Выплачено"</strong> за указанный период.</p>
+                    <p>🏢 В отчет будут включены данные по выбранным организациям (или по всем, если не выбраны конкретные).</p>
+                    <p>📄 После создания отчета вы сможете скачать его в формате Word и посмотреть графики.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Автоматическая подсказка для названия отчета
+        document.addEventListener('DOMContentLoaded', function() {
+            const названиеField = document.getElementById('{{ form.название.id_for_label }}');
+            const датаНачалаField = document.getElementById('{{ form.дата_начала.id_for_label }}');
+            const датаОкончанияField = document.getElementById('{{ form.дата_окончания.id_for_label }}');
+            
+            // Автозаполнение названия при изменении дат
+            function updateReportName() {
+                if (названиеField && названиеField.value === '') {
+                    const startDate = датаНачалаField ? датаНачалаField.value : '';
+                    const endDate = датаОкончанияField ? датаОкончанияField.value : '';
+                    
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        
+                        if (start.toDateString() === end.toDateString()) {
+                            названиеField.value = `Отчет за ${formatDate(start)}`;
+                        } else {
+                            названиеField.value = `Отчет с ${formatDate(start)} по ${formatDate(end)}`;
+                        }
+                    }
+                }
+            }
+            
+            function formatDate(date) {
+                return date.toLocaleDateString('ru-RU');
+            }
+            
+            if (датаНачалаField && датаОкончанияField) {
+                датаНачалаField.addEventListener('change', updateReportName);
+                датаОкончанияField.addEventListener('change', updateReportName);
+            }
+            
+            // Инициализация при загрузке
+            updateReportName();
+            
+            // Анимация появления элементов
+            const cards = document.querySelectorAll('.content-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

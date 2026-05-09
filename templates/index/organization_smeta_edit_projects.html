@@ -1,0 +1,269 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Редактирование проектов: {{ smeta.название }}</h1>
+        <a href="{% url 'organization_smeta_detail' smeta.pk %}" class="btn btn-secondary">← Назад к смете</a>
+    </div>
+
+    <div class="info-box">
+        <p><strong>Статус сметы:</strong> {{ smeta.get_статус_display }}</p>
+        <p><strong>Год:</strong> {{ smeta.год }}</p>
+        <p><strong>Всего проектов:</strong> {{ projects.count }}</p>
+    </div>
+
+    <div class="projects-list">
+        <h2>Проекты в смете</h2>
+        
+        {% if projects %}
+            <table class="projects-table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th>Сумма</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td>{{ project.название }}</td>
+                        <td>{{ project.описание|truncatechars:50 }}</td>
+                        <td class="amount">{{ project.запрашиваемая_сумма }} руб.</td>
+                        <td>
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="delete_project" value="1">
+                                <input type="hidden" name="project_id" value="{{ project.id }}">
+                                <button type="submit" class="btn-small btn-danger" onclick="return confirm('Удалить проект?')">
+                                    Удалить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2"><strong>ИТОГО:</strong></td>
+                        <td class="amount total">{{ smeta.общая_сумма }} руб.</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        {% else %}
+            <div class="no-projects">
+                <p>В смете пока нет проектов</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="add-project-section">
+        <h2>Добавить новый проект</h2>
+        <form method="post" class="project-form" action="{% url 'organization_smeta_detail' smeta.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="add_project" value="1">
+            
+            <div class="form-group">
+                <label for="название">Название проекта:</label>
+                <input type="text" name="название" id="название" class="form-control" required 
+                       placeholder="Например: Ремонт дороги по ул. Ленина">
+            </div>
+            
+            <div class="form-group">
+                <label for="описание">Описание:</label>
+                <textarea name="описание" id="описание" class="form-control" rows="3" 
+                          placeholder="Краткое описание проекта"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="запрашиваемая_сумма">Запрашиваемая сумма (руб.):</label>
+                <input type="number" name="запрашиваемая_сумма" id="запрашиваемая_сумма" class="form-control" 
+                       step="0.01" min="0" required>
+            </div>
+            
+            <button type="submit" class="btn btn-success">➕ Добавить проект</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 24px;
+}
+
+.info-box {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 4px solid #3498db;
+}
+
+.info-box p {
+    margin: 5px 0;
+    color: #2c3e50;
+}
+
+.projects-list {
+    margin-bottom: 30px;
+}
+
+.projects-list h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.projects-table th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+}
+
+.projects-table td {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.projects-table tfoot td {
+    background: #f8f9fa;
+    font-weight: bold;
+}
+
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.amount.total {
+    font-size: 18px;
+    color: #2980b9;
+}
+
+.no-projects {
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #7f8c8d;
+}
+
+.add-project-section {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-project-section h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 20px;
+}
+
+.project-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #229954;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+</style>
+{% endblock %}

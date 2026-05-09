@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчеты по заявкам</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .reports-table th {
+            padding: 15px;
+            text-align: left;
+            background: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .reports-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .report-info {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-download {
+            background: #48bb78;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-delete {
+            background: #f56565;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .no-reports {
+            text-align: center;
+            padding: 50px;
+            color: #718096;
+        }
+
+        .filter-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .reports-table {
+                font-size: 12px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Мои отчеты по заявкам</h1>
+            <p class="subtitle">Сохраненные отчеты, созданные на основе фильтров</p>
+            <div class="button-group" style="margin-top: 20px;">
+                <button onclick="location.href='{% url 'user_dashboard' %}'" class="btn btn-secondary">
+                    ← Вернуться в личный кабинет
+                </button>
+                <button onclick="location.href='{% url 'user_dashboard' %}'" class="btn btn-primary">
+                    📝 Создать новый отчет
+                </button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            {% if reports %}
+                <table class="reports-table">
+                    <thead>
+                        <tr>
+                            <th>Название отчета</th>
+                            <th>Параметры фильтра</th>
+                            <th>Статистика</th>
+                            <th>Дата создания</th>
+                            <th>Действия</th>
+                        </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <strong>{{ report.название }}</strong>
+                                <div class="report-info">
+                                    ID: #{{ report.id }}
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    {% if report.дата_начала or report.дата_окончания %}
+                                        <span class="filter-badge">📅 
+                                            {% if report.дата_начала %}{{ report.дата_начала|date:"d.m.Y" }}{% endif %}
+                                            {% if report.дата_окончания %} - {{ report.дата_окончания|date:"d.m.Y" }}{% endif %}
+                                        </span>
+                                    {% endif %}
+                                    <span class="filter-badge">📊 {{ report.status_display }}</span>
+                                    <span class="filter-badge">💰 {{ report.payment_display }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>📋 Всего: {{ report.количество_заявок }}</div>
+                                <div>💰 Сумма: {{ report.общая_сумма|floatformat:2 }} руб.</div>
+                                <div style="font-size: 12px;">
+                                    🟡 Новых: {{ report.количество_новых }} | 
+                                    🟢 Принятых: {{ report.количество_принятых }} | 
+                                    🔴 Отклоненных: {{ report.количество_отклоненных }}
+                                </div>
+                            </td>
+                            <td>{{ report.дата_создания|date:"d.m.Y H:i" }}</td>
+                            <td class="action-buttons">
+                                <a href="{% url 'download_application_report' report.id %}" class="btn-download">📥 Скачать</a>
+                                <form method="post" action="{% url 'delete_application_report' report.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Удалить этот отчет?')">🗑️ Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-reports">
+                    <p>📭 У вас пока нет созданных отчетов</p>
+                    <p style="margin-top: 10px;">Используйте кнопку "Создать отчет по текущему фильтру" в личном кабинете</p>
+                    <button onclick="location.href='{% url 'user_dashboard' %}'" class="btn btn-primary" style="margin-top: 20px;">
+                        📝 Создать первый отчет
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

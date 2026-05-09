@@ -1,0 +1,539 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сметы от администрации</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '📋';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .smeti-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            padding: 25px;
+        }
+
+        .smeta-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .smeta-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .smeta-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .smeta-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .smeta-body {
+            padding: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        .amount {
+            color: #48bb78;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .projects-details {
+            margin: 15px 0;
+            background: #f8fafc;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .projects-details summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: #f1f5f9;
+            user-select: none;
+        }
+
+        .projects-details summary:hover {
+            background: #e2e8f0;
+        }
+
+        .projects-list {
+            padding: 12px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .project-item {
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .project-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .project-item strong {
+            display: block;
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .project-item p {
+            color: #718096;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .project-amount {
+            color: #48bb78;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .document-links {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .document-links h4 {
+            font-size: 0.85rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.3s;
+        }
+
+        .document-item:hover {
+            background: #f1f5f9;
+        }
+
+        .doc-icon {
+            font-size: 1.1rem;
+        }
+
+        .doc-name {
+            flex: 1;
+            color: #2d3748;
+            font-size: 0.85rem;
+        }
+
+        .btn-download {
+            background: #48bb78;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: background 0.3s;
+        }
+
+        .btn-download:hover {
+            background: #38a169;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-approve {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .no-smeti {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+
+        .no-smeti i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .smeti-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Сметы от администрации</h1>
+            <p class="subtitle">Поступившие сметы затрат от администрации города Лениногорск</p>
+            <div class="button-group">
+                <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">
+                    ← Назад в личный кабинет
+                </a>
+            </div>
+        </div>
+
+        {% if smeti %}
+            <div class="smeti-grid">
+                {% for smeta in smeti %}
+                <div class="smeta-card">
+                    <div class="smeta-header">
+                        <h3>{{ smeta.название }}</h3>
+                        <span class="status-badge">Отправлена</span>
+                    </div>
+                    <div class="smeta-body">
+                        <div class="info-row">
+                            <span class="info-label">Организация:</span>
+                            <span class="info-value">{{ smeta.организация.ПолноеНаименование }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Год:</span>
+                            <span class="info-value">{{ smeta.год }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Дата отправки:</span>
+                            <span class="info-value">{{ smeta.дата_отправки|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Количество проектов:</span>
+                            <span class="info-value">{{ smeta.проекты.count }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Общая сумма:</span>
+                            <span class="info-value amount">{{ smeta.общая_сумма|floatformat:2 }} руб.</span>
+                        </div>
+                        
+                        {% if smeta.комментарий %}
+                        <div class="info-row">
+                            <span class="info-label">Комментарий:</span>
+                            <span class="info-value">{{ smeta.комментарий }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Проекты -->
+                        <details class="projects-details">
+                            <summary>📋 Список проектов</summary>
+                            <div class="projects-list">
+                                {% for project in smeta.проекты.all %}
+                                <div class="project-item">
+                                    <strong>{{ project.название }}</strong>
+                                    {% if project.описание %}
+                                    <p>{{ project.описание }}</p>
+                                    {% endif %}
+                                    <span class="project-amount">{{ project.запрашиваемая_сумма|floatformat:2 }} руб.</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </details>
+                        
+                        <!-- Документы -->
+                        <div class="document-links">
+                            <h4>📎 Прикрепленные документы:</h4>
+                            {% for doc in smeta.документы.all %}
+                            <div class="document-item">
+                                <span class="doc-icon">
+                                    {% if doc.тип == 'smeta' %}📊{% else %}📝{% endif %}
+                                </span>
+                                <span class="doc-name">{{ doc.название }}</span>
+                                <a href="{% url 'download_document' doc.pk %}" class="btn-download" target="_blank">Скачать PDF</a>
+                            </div>
+                            {% empty %}
+                            <div class="document-item">
+                                <span class="doc-icon">📭</span>
+                                <span class="doc-name">Нет прикрепленных документов</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Кнопки действий -->
+                        <div class="action-buttons">
+                            <form method="post" action="{% url 'budget_smeta_review' smeta.pk %}" style="flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="действие" value="approve">
+                                <button type="submit" class="btn-action btn-approve" onclick="return confirm('Одобрить смету?')">
+                                    ✅ Одобрить
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'budget_smeta_review' smeta.pk %}" style="flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="действие" value="reject">
+                                <button type="submit" class="btn-action btn-reject" onclick="return confirm('Отклонить смету?')">
+                                    ❌ Отклонить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="content-card">
+                <div class="no-smeti">
+                    <i>📭</i>
+                    <h3>Нет новых смет от администрации</h3>
+                    <p>Сметы будут появляться здесь после отправки</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

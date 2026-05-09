@@ -1,0 +1,457 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сметы ФБП</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Сетка смет */
+        .smeti-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            padding: 25px;
+        }
+
+        .smeta-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .smeta-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .smeta-card.draft {
+            border-top: 4px solid #f39c12;
+        }
+
+        .smeta-card.approved {
+            border-top: 4px solid #48bb78;
+        }
+
+        .smeta-card.sent {
+            border-top: 4px solid #667eea;
+        }
+
+        .card-header-smeta {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header-smeta h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.85rem;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        .amount {
+            color: #48bb78;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .card-footer {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .smeti-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .card-footer {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Сметы ФБП</h1>
+            <p class="subtitle">Планирование бюджета на основе выплат</p>
+            <div class="button-group">
+                <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">
+                    ← Назад в личный кабинет
+                </a>
+                <a href="{% url 'budget_smeta_fbp_from_payments' %}" class="btn btn-primary">
+                    📊 На основе выплат
+                </a>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.черновики }}</div>
+                <div class="stat-label">Черновики</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.утверждены }}</div>
+                <div class="stat-label">Утверждены</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.отправлены }}</div>
+                <div class="stat-label">Отправлены</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.всего }}</div>
+                <div class="stat-label">Всего</div>
+            </div>
+        </div>
+
+        <!-- Список смет -->
+        {% if сметы %}
+        <div class="smeti-grid">
+            {% for смета in сметы %}
+            <div class="smeta-card {% if смета.статус == 'черновик' %}draft{% elif смета.статус == 'утверждена' %}approved{% else %}sent{% endif %}">
+                <div class="card-header-smeta">
+                    <h3>Смета на {{ смета.год }} год</h3>
+                    <span class="status-badge">{{ смета.get_статус_display }}</span>
+                </div>
+                
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="info-label">Дата создания:</span>
+                        <span class="info-value">{{ смета.дата_создания|date:"d.m.Y" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Статей:</span>
+                        <span class="info-value">{{ смета.статьи.count }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Общая сумма:</span>
+                        <span class="amount">{{ смета.общая_сумма|floatformat:2 }} руб.</span>
+                    </div>
+                    
+                    {% if смета.создана_на_основе_выплат_за_год %}
+                    <div class="info-row highlight">
+                        <span class="info-label">📊 На основе выплат:</span>
+                        <span class="info-value">{{ смета.создана_на_основе_выплат_за_год }} года</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <a href="{% url 'budget_smeta_fbp_detail' смета.pk %}" class="btn btn-primary btn-sm">Подробнее</a>
+                    
+                    <form method="post" action="{% url 'budget_smeta_fbp_delete' смета.pk %}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить смету на {{ смета.год }} год? Это действие нельзя отменить.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="content-card">
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>У вас пока нет смет ФБП</h3>
+                <p>Создайте первую смету на основе выплат</p>
+                <div class="button-group" style="justify-content: center; margin-top: 20px;">
+                    <a href="{% url 'budget_smeta_fbp_from_payments' %}" class="btn btn-primary">📊 Создать на основе выплат</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.smeta-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

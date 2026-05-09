@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Создание письма-заявки</h1>
+    
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>Получатель:</h3>
+            <div class="form-group">
+                <label>ФИО Главы района:</label>
+                <input type="text" name="glava" value="Иванов И.И." class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>Должность получателя:</label>
+                <input type="text" name="dolzhnost" value="Главе Лениногорского муниципального района" class="form-control">
+            </div>
+            
+            <h3>Отправитель:</h3>
+            <div class="form-group">
+                <label>Должность отправителя:</label>
+                <input type="text" name="ot_kogo" value="Главы администрации города Лениногорск" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>ФИО отправителя:</label>
+                <input type="text" name="fio" value="Петрова П.П." class="form-control">
+            </div>
+            
+            <h3>Основание:</h3>
+            <div class="form-group">
+                <label>Номер соглашения:</label>
+                <input type="text" name="dogovor_num" value="45-С/2025" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>Дата соглашения:</label>
+                <input type="date" name="dogovor_date" value="{{ now|date:'Y-m-d' }}" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>Текст основания:</label>
+                <input type="text" name="osnovanie" value="в соответствии с Соглашением о сотрудничестве" class="form-control">
+            </div>
+            
+            <h3>Получатель средств:</h3>
+            <div class="form-group">
+                <label>Учреждение:</label>
+                <input type="text" name="uchrezhdenie" value="Муниципальному казённому учреждению «Финансово-бюджетная палата»" class="form-control">
+            </div>
+            
+            <h3>Проекты в смете:</h3>
+            <table class="table">
+                {% for project in smeta.проекты.all %}
+                <tr>
+                    <td>{{ project.название }}</td>
+                    <td>{{ project.запрашиваемая_сумма }} руб.</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td><strong>ИТОГО:</strong></td>
+                    <td><strong>{{ smeta.общая_сумма }} руб.</strong></td>
+                </tr>
+            </table>
+            
+            <h3>Дополнительно:</h3>
+            <div class="form-group">
+                <label>Дополнительный текст:</label>
+                <textarea name="dop_text" class="form-control" rows="3"></textarea>
+            </div>
+            
+            <h3>Исполнитель:</h3>
+            <div class="form-group">
+                <label>ФИО исполнителя:</label>
+                <input type="text" name="ispolnitel" value="Сидорова А.А." class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>Телефон:</label>
+                <input type="text" name="telefon" value="8 (85595) 5-00-00" class="form-control">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Создать PDF с печатью</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

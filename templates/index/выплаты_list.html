@@ -1,0 +1,1070 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление выплатами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '💰';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-document {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-document:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .filters-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+
+        .filter-select, .filter-input {
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-filter {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-clear {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .active-filter {
+            background: #e8f4fd;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .expected-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .expected-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .expected-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #48bb78;
+        }
+
+        .difference-positive {
+            color: #48bb78;
+        }
+
+        .difference-negative {
+            color: #f56565;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payments-table th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 12px;
+        }
+
+        .payments-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        .payments-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            display: inline-block;
+        }
+
+        .status-ожидает {
+            background: #f39c12;
+        }
+
+        .status-выплачено {
+            background: #48bb78;
+        }
+
+        .status-отменено {
+            background: #f56565;
+        }
+
+        .locked-badge {
+            background: #a0aec0;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            margin-left: 5px;
+        }
+
+        .status-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-select {
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .btn-update {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .btn-update:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-view {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        .btn-view:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .truncated-text {
+            display: inline-block;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .documents-list {
+            max-height: 120px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: #f7fafc;
+            border-radius: 6px;
+            font-size: 10px;
+        }
+
+        .doc-icon {
+            font-size: 12px;
+        }
+
+        .doc-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doc-download {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 10px;
+        }
+
+        .doc-download:hover {
+            transform: translateY(-1px);
+        }
+
+        .document-unavailable {
+            color: #a0aec0;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 500px;
+            max-width: 90%;
+            border-radius: 20px;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .detail-value {
+            color: #2d3748;
+            text-align: right;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #a0aec0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Управление выплатами</h1>
+            <div class="button-group">
+                <a href="{% url 'отчет_create_from_payments' %}?date_filter={{ date_filter }}&start_date={{ start_date }}&end_date={{ end_date }}{% for org_id in организации_ids %}&организации={{ org_id }}{% endfor %}" 
+                   class="btn btn-primary">Составить отчет</a>
+                <a href="{% url 'отчеты_list' %}" class="btn btn-success">Просмотр отчетов</a>
+                <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">Назад в кабинет</a>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <div class="card-header" style="margin: -25px -25px 20px -25px; border-radius: 20px 20px 0 0;">
+                <h3>Параметры фильтрации</h3>
+            </div>
+            <div class="card-body">
+                {% if date_filter or start_date or end_date or организации_ids %}
+                <div class="active-filter">
+                    <strong>Активный фильтр:</strong>
+                    {% if date_filter == 'today' %}Сегодня{% endif %}
+                    {% if date_filter == 'week' %}За неделю{% endif %}
+                    {% if date_filter == 'month' %}За месяц{% endif %}
+                    {% if date_filter == 'year' %}За год{% endif %}
+                    {% if start_date %}с {{ start_date }}{% endif %}
+                    {% if end_date %}по {{ end_date }}{% endif %}
+                    {% if организации_ids %}
+                        | Организации: 
+                        {% for org_id in организации_ids %}
+                            {% for org in все_организации %}
+                                {% if org.id|stringformat:"s" == org_id %}{{ org.ПолноеНаименование }}{% if not forloop.last %}, {% endif %}{% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <form method="get" action="{% url 'выплаты_list' %}">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Быстрый фильтр по дате:</label>
+                            <select name="date_filter" class="filter-select">
+                                <option value="">Все выплаты</option>
+                                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Сегодня</option>
+                                <option value="week" {% if date_filter == 'week' %}selected{% endif %}>За неделю</option>
+                                <option value="month" {% if date_filter == 'month' %}selected{% endif %}>За месяц</option>
+                                <option value="year" {% if date_filter == 'year' %}selected{% endif %}>За год</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>С даты:</label>
+                            <input type="date" name="start_date" value="{{ start_date }}" class="filter-input">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>По дату:</label>
+                            <input type="date" name="end_date" value="{{ end_date }}" class="filter-input">
+                        </div>
+                        
+                        <div class="filter-group" style="grid-column: span 2;">
+                            <label>Организации (выберите одну или несколько):</label>
+                            <select name="организации" multiple class="filter-select" style="height: 120px;">
+                                {% for org in все_организации %}
+                                    <option value="{{ org.id }}" {% if org.id|stringformat:"s" in выбранные_организации %}selected{% endif %}>
+                                        {{ org.ПолноеНаименование }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small style="color: #718096; font-size: 11px;">
+                                Удерживайте Ctrl для выбора нескольких организаций. Оставьте пустым для всех.
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-buttons">
+                        <button type="submit" class="btn-filter">Применить фильтры</button>
+                        <a href="{% url 'выплаты_list' %}" class="btn-clear">Сбросить фильтры</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="expected-section">
+            <div class="card-header" style="margin: -20px -20px 20px -20px; border-radius: 20px 20px 0 0;">
+                <h3>Ожидаемая сумма выплат</h3>
+            </div>
+            <div class="card-body">
+                <div class="expected-header">
+                    <div>
+                        <strong style="font-size: 1.2rem;">
+                            {% if ожидаемая_сумма_периода %}
+                                {{ ожидаемая_сумма_периода|floatformat:2 }} руб.
+                            {% else %}
+                                Не установлена
+                            {% endif %}
+                        </strong>
+                        <span style="margin-left: 20px; color: #4a5568;">
+                            Фактические выплаты: <strong>{{ сумма_выплат_периода|floatformat:2 }} руб.</strong>
+                        </span>
+                        <span style="margin-left: 20px;">
+                            Разница: 
+                            <strong class="{% if разница_периода < 0 %}difference-negative{% else %}difference-positive{% endif %}">
+                                {{ разница_периода|floatformat:2 }} руб.
+                            </strong>
+                        </span>
+                    </div>
+                    <a href="{% url 'ожидаемые_суммы_list' %}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Управление ожидаемыми суммами</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #718096;">
+                    {% if date_filter_applied %}
+                        За период с {{ period_start_date|date:"d.m.Y" }} по {{ period_end_date|date:"d.m.Y" }}
+                    {% else %}
+                        За текущий месяц ({{ period_start_date|date:"d.m.Y" }} - {{ period_end_date|date:"d.m.Y" }})
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_amount|floatformat:0 }} ₽</div>
+                <div class="stat-label">Общая сумма</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">{{ status_counts.выплачено|default:"0" }}</div>
+                <div class="stat-label">Выплачено</div>
+            </div>
+        </div>
+
+        {% if выплаты %}
+        <div class="content-card">
+            <div class="card-header">
+                <h3>Список выплат</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="payments-table">
+                        <thead>
+                            <tr>
+                                <th>Код</th>
+                                <th>Организация</th>
+                                <th>ИНН</th>
+                                <th>Счет</th>
+                                <th>Сумма</th>
+                                <th>Вид выплаты</th>
+                                <th>Дата создания</th>
+                                <th>Статус</th>
+                                <th>Дата вып.</th>
+                                <th>Документ</th>
+                                <th>Документы заявки</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for выплата in выплаты %}
+                            <tr>
+                                <td><strong>{{ выплата.код_выплаты }}</strong> </td>
+                                <td>
+                                    <span class="truncated-text" title="{{ выплата.полное_наименование }}">
+                                        {{ выплата.полное_наименование|truncatechars:20 }}
+                                    </span>
+                                    <button class="btn-view" onclick="showPaymentDetails({{ forloop.counter0 }})">👁️</button>
+                                </td>
+                                <td>{{ выплата.инн }}</td>
+                                <td>
+                                    <span class="truncated-text" title="{{ выплата.счет_получателя }}">
+                                        {{ выплата.счет_получателя|truncatechars:10 }}
+                                    </span>
+                                </td>
+                                <td><strong>{{ выплата.сумма }} ₽</strong></td>
+                                <td>{{ выплата.вид|default:"-"|truncatechars:15 }}</td>
+                                <td>{{ выплата.дата_создания|date:"d.m.Y" }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ выплата.статус }}">
+                                        {% if выплата.статус == 'ожидает' %}Ожидает{% elif выплата.статус == 'выплачено' %}Выплачено{% else %}Отменено{% endif %}
+                                    </span>
+                                    {% if выплата.заблокировано %}<span class="locked-badge">🔒</span>{% endif %}
+                                </td>
+                                <td>{% if выплата.дата_выполнения %}{{ выплата.дата_выполнения|date:"d.m.Y" }}{% else %}-{% endif %}</td>
+                                <td>
+                                    {% if выплата.статус == 'выплачено' %}
+                                        <button onclick="exportPaymentToWord({{ forloop.counter0 }})" class="btn btn-document" style="padding: 4px 10px;">Скачать</button>
+                                    {% else %}
+                                        <span class="document-unavailable">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="documents-cell">
+                                    {% if выплата.заявка and выплата.заявка.документы.all %}
+                                        <div class="documents-list">
+                                            {% for doc in выплата.заявка.документы.all %}
+                                            <div class="document-item">
+                                                <span class="doc-icon">📄</span>
+                                                <span class="doc-name">{{ doc.название|truncatechars:12 }}</span>
+                                                <a href="{{ doc.файл.url }}" class="doc-download" download>⬇️</a>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="document-unavailable">Нет документов</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not выплата.заблокировано %}
+                                    <form method="post" action="{% url 'выплата_update_status' выплата.id %}" class="status-form">
+                                        {% csrf_token %}
+                                        <select name="статус" class="status-select">
+                                            {% for status_value, status_label in выплата.СТАТУС_ВЫБОР %}
+                                                <option value="{{ status_value }}" {% if выплата.статус == status_value %}selected{% endif %}>
+                                                    {{ status_label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn-update">Обновить</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="document-unavailable">Заблокировано</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="content-card">
+            <div class="empty-state">
+                <div style="font-size: 4rem; margin-bottom: 15px;">📭</div>
+                <h3>Нет выплат для отображения</h3>
+                {% if date_filter or start_date or end_date or organizations_ids %}
+                <p>Попробуйте изменить параметры фильтрации</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Детальная информация о выплате</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="paymentDetails">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paymentsData = [
+            {% for выплата in выплаты %}
+            {
+                id: {{ выплата.id }},
+                код_выплаты: "{{ выплата.код_выплаты }}",
+                полное_наименование: "{{ выплата.полное_наименование|escapejs }}",
+                инн: "{{ выплата.инн }}",
+                счет_получателя: "{{ выплата.счет_получателя }}",
+                сумма: "{{ выплата.сумма }}",
+                вид: "{{ выплата.вид|default:'Не указан'|escapejs }}",
+                назначение_платежа: "{{ выплата.назначение_платежа|default:'Не указано'|escapejs }}",
+                статус: "{{ выплата.статус }}",
+                дата_создания: "{{ выплата.дата_создания|date:'d.m.Y H:i' }}",
+                дата_выполнения: "{{ выплата.дата_выполнения|date:'d.m.Y'|default:'-' }}",
+                заблокировано: {{ выплата.заблокировано|yesno:"true,false" }}
+            },
+            {% endfor %}
+        ];
+
+        function showPaymentDetails(index) {
+            const payment = paymentsData[index];
+            const modal = document.getElementById('paymentModal');
+            const detailsDiv = document.getElementById('paymentDetails');
+            
+            if (!payment) return;
+            
+            let statusText = '';
+            switch(payment.статус) {
+                case 'ожидает': statusText = 'Ожидает выплаты'; break;
+                case 'выплачено': statusText = 'Выплачено'; break;
+                case 'отменено': statusText = 'Отменено'; break;
+                default: statusText = payment.статус;
+            }
+            
+            detailsDiv.innerHTML = `
+                <div class="detail-item"><span class="detail-label">Код выплаты:</span><span class="detail-value">${payment.код_выплаты}</span></div>
+                <div class="detail-item"><span class="detail-label">Организация:</span><span class="detail-value">${payment.полное_наименование}</span></div>
+                <div class="detail-item"><span class="detail-label">ИНН:</span><span class="detail-value">${payment.инн}</span></div>
+                <div class="detail-item"><span class="detail-label">Счет получателя:</span><span class="detail-value">${payment.счет_получателя}</span></div>
+                <div class="detail-item"><span class="detail-label">Сумма:</span><span class="detail-value">${payment.сумма} руб.</span></div>
+                <div class="detail-item"><span class="detail-label">Вид выплаты:</span><span class="detail-value">${payment.вид}</span></div>
+                <div class="detail-item"><span class="detail-label">Назначение:</span><span class="detail-value">${payment.назначение_платежа}</span></div>
+                <div class="detail-item"><span class="detail-label">Статус:</span><span class="detail-value">${statusText} ${payment.заблокировано ? 'ЗАБЛОКИРОВАНО' : ''}</span></div>
+                <div class="detail-item"><span class="detail-label">Дата создания:</span><span class="detail-value">${payment.дата_создания}</span></div>
+                <div class="detail-item"><span class="detail-label">Дата выполнения:</span><span class="detail-value">${payment.дата_выполнения}</span></div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        function exportPaymentToWord(index) {
+            const payment = paymentsData[index];
+            if (!payment) return;
+
+            const currentDate = new Date();
+            const dateStr = currentDate.toLocaleDateString('ru-RU');
+            const timeStr = currentDate.toLocaleTimeString('ru-RU');
+
+            let statusText = '';
+            switch(payment.статус) {
+                case 'ожидает': statusText = 'Ожидает выплаты'; break;
+                case 'выплачено': statusText = 'Выплачено'; break;
+                case 'отменено': statusText = 'Отменено'; break;
+                default: statusText = payment.статус;
+            }
+
+            const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Выплата ${payment.код_выплаты}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 14pt;
+            margin: 2.5cm;
+            line-height: 1.3;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .header p {
+            margin: 3px 0;
+        }
+        .document-title {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .document-title h2 {
+            font-size: 16pt;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 10px 0;
+        }
+        .info-block {
+            margin: 20px 0;
+        }
+        .info-block h3 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+        }
+        .info-line {
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: bold;
+        }
+        .amount-box {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #000;
+            text-align: center;
+            background: #f9f9f9;
+        }
+        .amount-box .amount {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .signature {
+            margin-top: 50px;
+        }
+        .signature-line {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stamp {
+            margin-top: 30px;
+            text-align: right;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .footer-note {
+            margin-top: 40px;
+            font-size: 10pt;
+            text-align: center;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>МУНИЦИПАЛЬНОЕ КАЗЕННОЕ УЧРЕЖДЕНИЕ</h1>
+    <h1>«ФИНАНСОВО-БЮДЖЕТНАЯ ПАЛАТА»</h1>
+    <p>муниципального образования «Лениногорский муниципальный район»</p>
+    <p>Республики Татарстан</p>
+</div>
+
+<hr>
+
+<div class="document-title">
+    <h2>УВЕДОМЛЕНИЕ О ВЫПЛАТЕ</h2>
+    <p>№ ${payment.код_выплаты}</p>
+</div>
+
+<div class="info-block">
+    <h3>1. ИНФОРМАЦИЯ О ПОЛУЧАТЕЛЕ</h3>
+    <div class="info-line">
+        <span class="info-label">Полное наименование:</span>
+        <span>${payment.полное_наименование}</span>
+    </div>
+    <div class="info-line">
+        <span class="info-label">ИНН:</span>
+        <span>${payment.инн}</span>
+    </div>
+    <div class="info-line">
+        <span class="info-label">Расчетный счет:</span>
+        <span>${payment.счет_получателя}</span>
+    </div>
+</div>
+
+<div class="info-block">
+    <h3>2. ИНФОРМАЦИЯ О ВЫПЛАТЕ</h3>
+    <div class="info-line">
+        <span class="info-label">Вид выплаты:</span>
+        <span>${payment.вид}</span>
+    </div>
+    <div class="info-line">
+        <span class="info-label">Дата создания выплаты:</span>
+        <span>${payment.дата_создания}</span>
+    </div>
+    <div class="info-line">
+        <span class="info-label">Статус выплаты:</span>
+        <span><strong>${statusText}</strong></span>
+    </div>
+    ${payment.дата_выполнения !== '-' ? `<div class="info-line"><span class="info-label">Дата выполнения:</span><span>${payment.дата_выполнения}</span></div>` : ''}
+</div>
+
+<div class="amount-box">
+    <div class="info-line">Сумма выплаты:</div>
+    <div class="amount">${payment.сумма} рублей 00 копеек</div>
+</div>
+
+<div class="info-block">
+    <h3>3. НАЗНАЧЕНИЕ ПЛАТЕЖА</h3>
+    <p>${payment.назначение_платежа}</p>
+</div>
+
+<div class="info-block">
+    <h3>4. ОСНОВАНИЕ ДЛЯ ВЫПЛАТЫ</h3>
+    <p>На основании рассмотрения заявки организации и в соответствии с Положением о порядке финансирования муниципальных учреждений, утвержденным постановлением Руководителя Исполнительного комитета Лениногорского муниципального района.</p>
+</div>
+
+<hr>
+
+<div class="signature">
+    <p>Руководитель учреждения:</p>
+    <div class="signature-line">
+        <span>_________________________</span>
+        <span>И.О. Фамилия</span>
+    </div>
+    <p>Главный бухгалтер:</p>
+    <div class="signature-line">
+        <span>_________________________</span>
+        <span>И.О. Фамилия</span>
+    </div>
+</div>
+
+<div class="stamp">
+    <p>М.П.</p>
+</div>
+
+<div class="footer-note">
+    Документ сформирован автоматически ${dateStr} в ${timeStr}
+</div>
+
+</body>
+</html>`;
+
+            const blob = new Blob(['\uFEFF' + htmlContent], { type: 'application/msword;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Выплата_${payment.код_выплаты}_${currentDate.toISOString().slice(0,19).replace(/:/g, '-')}.doc`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('paymentModal');
+            if (event.target === modal) closeModal();
+        }
+    </script>
+</body>
+</html>

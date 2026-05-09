@@ -1,0 +1,351 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="application-container">
+    <h1>Подача заявки</h1>
+    
+    <div class="application-form">
+        <form method="post" enctype="multipart/form-data" id="applicationForm">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h2>Информация об организации</h2>
+                <div class="readonly-info">
+                    <div class="info-row">
+                        <label>Полное наименование:</label>
+                        <span>{{ organization.ПолноеНаименование }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>ИНН:</label>
+                        <span>{{ organization.ИНН }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Счет организации:</label>
+                        <span>{{ organization.СчетОрганизации }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Дата подачи:</label>
+                        <span>{{ current_date }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Информация о получателе</h2>
+                <div class="readonly-info">
+                    <div class="info-row">
+                        <label>Получатель:</label>
+                        <span>Муниципальное казённое учреждение «Финансово-бюджетная палата» муниципального образования «Лениногорский муниципальный район» Республики Татарстан</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Счет получателя:</label>
+                        <span>03100643000000011100</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Данные заявки</h2>
+                
+                <div class="form-group">
+                    <label for="{{ form.вид_выплаты.id_for_label }}">Вид выплаты:</label>
+                    {{ form.вид_выплаты }}
+                    {{ form.вид_выплаты.errors }}
+                </div>
+
+                <div class="form-group checkbox-group">
+                    {{ form.использовать_другой_вид }}
+                    <label for="use_other_type">Указать другой вид выплаты</label>
+                </div>
+
+                <div class="form-group" id="otherTypeField" style="display: none;">
+                    <label for="{{ form.другой_вид_выплаты.id_for_label }}">Другой вид выплаты:</label>
+                    {{ form.другой_вид_выплаты }}
+                    {{ form.другой_вид_выплаты.errors }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.запрашиваемая_сумма.id_for_label }}">Запрашиваемая сумма (руб.):</label>
+                    {{ form.запрашиваемая_сумма }}
+                    {{ form.запрашиваемая_сумма.errors }}
+                </div>
+                
+                <!-- ПОЛЕ ДЛЯ ЗАГРУЗКИ ДОКУМЕНТОВ - ИСПРАВЛЕНО -->
+                <div class="form-group">
+                    <label for="documents">Прикрепить документы (можно выбрать несколько):</label>
+                    <input type="file" name="documents" id="documents" multiple class="form-control" 
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png">
+                    <small class="help-text">
+                        Поддерживаются форматы: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG.<br>
+                        Для выбора нескольких файлов удерживайте клавишу <strong>Ctrl</strong> (Windows) или <strong>Cmd</strong> (Mac)
+                    </small>
+                </div>
+                
+                <!-- Блок для предпросмотра выбранных файлов -->
+                <div id="fileList" style="margin-top: 10px; display: none;">
+                    <h4>Выбранные файлы:</h4>
+                    <ul id="selectedFiles" style="list-style: none; padding-left: 0;"></ul>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="error-message">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Отправить заявку</button>
+                <a href="{% url 'organization_dashboard' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Логика для чекбокса "Указать другой вид выплаты"
+    const useOtherTypeCheckbox = document.getElementById('use_other_type');
+    const otherTypeField = document.getElementById('otherTypeField');
+    const paymentTypeSelect = document.getElementById('id_вид_выплаты');
+    
+    function toggleOtherTypeField() {
+        if (useOtherTypeCheckbox && otherTypeField && paymentTypeSelect) {
+            if (useOtherTypeCheckbox.checked) {
+                otherTypeField.style.display = 'block';
+                paymentTypeSelect.disabled = true;
+                paymentTypeSelect.value = '';
+            } else {
+                otherTypeField.style.display = 'none';
+                paymentTypeSelect.disabled = false;
+                const otherInput = document.getElementById('id_другой_вид_выплаты');
+                if (otherInput) otherInput.value = '';
+            }
+        }
+    }
+    
+    if (useOtherTypeCheckbox) {
+        useOtherTypeCheckbox.addEventListener('change', toggleOtherTypeField);
+        toggleOtherTypeField(); // Initial state
+    }
+    
+    // Форматирование суммы
+    const amountInput = document.getElementById('id_запрашиваемая_сумма');
+    if (amountInput) {
+        amountInput.addEventListener('blur', function() {
+            if (this.value) {
+                // Удаляем все символы кроме цифр и точки
+                let value = this.value.replace(/[^\d.]/g, '');
+                // Парсим как число
+                let num = parseFloat(value);
+                if (!isNaN(num)) {
+                    this.value = num.toFixed(2);
+                }
+            }
+        });
+    }
+    
+    // Отображение выбранных файлов
+    const fileInput = document.getElementById('documents');
+    const fileListDiv = document.getElementById('fileList');
+    const selectedFilesUl = document.getElementById('selectedFiles');
+    
+    if (fileInput && fileListDiv && selectedFilesUl) {
+        fileInput.addEventListener('change', function() {
+            selectedFilesUl.innerHTML = '';
+            if (this.files.length > 0) {
+                fileListDiv.style.display = 'block';
+                for (let i = 0; i < this.files.length; i++) {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '5px';
+                    li.style.padding = '5px';
+                    li.style.background = '#f8f9fa';
+                    li.style.borderRadius = '3px';
+                    li.innerHTML = `
+                        <span style="font-weight: bold;">${this.files[i].name}</span> 
+                        <span style="color: #27ae60; margin-left: 10px;">(${(this.files[i].size / 1024).toFixed(2)} KB)</span>
+                    `;
+                    selectedFilesUl.appendChild(li);
+                }
+            } else {
+                fileListDiv.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.application-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.application-form {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.readonly-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.info-row label {
+    font-weight: bold;
+    min-width: 200px;
+    color: #666;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+.help-text {
+    display: block;
+    margin-top: 5px;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+#fileList {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    border-left: 4px solid #27ae60;
+}
+
+#fileList h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+#selectedFiles {
+    margin: 0;
+}
+
+.error-message {
+    background: #e74c3c;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #219a52;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-2px);
+}
+
+/* Стили для файлового поля */
+input[type="file"] {
+    padding: 8px;
+    background: #f8f9fa;
+    border: 1px dashed #3498db;
+}
+
+input[type="file"]:hover {
+    background: #e9ecef;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,422 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали отчета - {{ отчет.название }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📄';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .org-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .org-badge {
+            background: #e8f4fd;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Таблица */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .payments-table th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .payments-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .payments-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .payments-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .amount {
+            font-weight: 700;
+            color: #48bb78;
+        }
+
+        /* Итоговая сумма */
+        .summary-section {
+            background: linear-gradient(135deg, #e8f4fd, #f0f9ff);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .summary-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #718096;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .summary-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #48bb78;
+            margin-bottom: 10px;
+        }
+
+        .summary-count {
+            font-size: 1rem;
+            color: #667eea;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #a0aec0;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .payments-table th,
+            .payments-table td {
+                padding: 8px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ отчет.название }}</h1>
+            <div class="button-group">
+                <a href="{% url 'отчет_download' отчет.pk %}" class="btn btn-download">
+                    📄 Скачать отчет
+                </a>
+                <a href="{% url 'отчеты_list' %}" class="btn btn-secondary">
+                    ← Назад к списку
+                </a>
+            </div>
+        </div>
+
+        <!-- Информация об отчете -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>📋 Информация об отчете</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">📅 Период</div>
+                        <div class="info-value">
+                            {{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">🏢 Организации</div>
+                        <div class="info-value">
+                            {% if отчет.организации.exists %}
+                                <div class="org-list">
+                                    {% for org in отчет.организации.all %}
+                                        <span class="org-badge">{{ org.ПолноеНаименование }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <span>Все организации</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">⏰ Дата создания</div>
+                        <div class="info-value">
+                            {{ отчет.дата_создания|date:"d.m.Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список выплат -->
+        <div class="content-card">
+            <div class="card-header">
+                <h2>💰 Выплаты в отчете ({{ выплаты.count }})</h2>
+            </div>
+            <div class="card-body">
+                {% if выплаты %}
+                <div class="table-container">
+                    <table class="payments-table">
+                        <thead>
+                            <tr>
+                                <th>Код</th>
+                                <th>Организация</th>
+                                <th>Вид выплаты</th>
+                                <th>Сумма</th>
+                                <th>Дата выплаты</th>
+                            </thead>
+                        <tbody>
+                            {% for выплата in выплаты %}
+                            <tr>
+                                <td><strong>{{ выплата.код_выплаты }}</strong></td>
+                                <td>{{ выплата.полное_наименование }}</td>
+                                <td>{{ выплата.вид|default:"-" }}</td>
+                                <td class="amount"><strong>{{ выплата.сумма|floatformat:2 }} руб.</strong></td>
+                                <td>{{ выплата.дата_создания|date:"d.m.Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>Нет выплат для отображения</h3>
+                    <p>В выбранный период не было выплат по заданным критериям</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Итоговая сумма -->
+        <div class="summary-section">
+            <div class="summary-title">ИТОГОВАЯ СУММА</div>
+            <div class="summary-amount">{{ отчет.общая_сумма|floatformat:2 }} руб.</div>
+            <div class="summary-count">Общее количество выплат: {{ отчет.количество_выплат }}</div>
+        </div>
+    </div>
+
+    <script>
+        // Анимация появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.content-card, .summary-section');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

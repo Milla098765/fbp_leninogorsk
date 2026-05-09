@@ -1,0 +1,656 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диаграммы отчета - {{ отчет.название }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📊';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 20px;
+        }
+
+        .chart-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-body {
+            padding: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        .chart-full {
+            grid-column: 1 / -1;
+        }
+
+        .time-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .time-btn {
+            padding: 8px 16px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .time-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .time-btn:hover:not(.active) {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .stats-footer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-footer h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .stats-footer p {
+            margin: 10px 0;
+        }
+
+        .stats-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #48bb78;
+        }
+
+        .stats-count {
+            font-size: 1.2rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .stats-period {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #a0aec0;
+        }
+
+        .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        @media (max-width: 968px) {
+            body {
+                padding: 10px;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-full {
+                grid-column: 1;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .chart-container {
+                height: 280px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Диаграммы отчета: {{ отчет.название }}</h1>
+            <div class="button-group">
+                <a href="{% url 'отчет_детали' отчет.pk %}" class="btn btn-secondary">
+                    ← Назад к отчету
+                </a>
+                <a href="{% url 'отчеты_list' %}" class="btn btn-primary">
+                    📋 Все отчеты
+                </a>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <!-- Диаграмма 1: Распределение по видам выплат -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>🎯 Распределение по видам выплат</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas id="typesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Диаграмма 2: Топ организаций -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>🏢 Топ организаций по сумме выплат</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas id="organizationsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Диаграмма 3: Временной график (полная ширина) -->
+            <div class="chart-card chart-full">
+                <div class="chart-header">
+                    <h3>📈 Динамика выплат по времени</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="time-controls">
+                        <button class="time-btn active" data-period="daily">По дням</button>
+                        <button class="time-btn" data-period="weekly">По неделям</button>
+                        <button class="time-btn" data-period="monthly">По месяцам</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Диаграмма 4: Сравнительная диаграмма -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>⚖️ Сравнение по статусам</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Диаграмма 5: Средние выплаты -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>📊 Средние выплаты по организациям</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas id="averageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-footer">
+            <h3>📊 Итоговая статистика</h3>
+            <p class="stats-amount">{{ отчет.общая_сумма|floatformat:2 }} руб.</p>
+            <p class="stats-count">Количество выплат: {{ отчет.количество_выплат }}</p>
+            <p class="stats-period">Период: {{ отчет.дата_начала|date:"d.m.Y" }} - {{ отчет.дата_окончания|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+
+    <script>
+        // Данные для диаграмм из Django
+        const typesData = {
+            labels: [
+                {% for item in данные_диаграммы %}
+                    '{{ item.вид__Название|default:"Без вида" }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for item in данные_диаграммы %}
+                        {{ item.total }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F39C12', '#9B59B6'],
+                borderColor: 'white',
+                borderWidth: 2
+            }]
+        };
+
+        const orgsData = {
+            labels: [
+                {% for item in данные_организаций %}
+                    '{{ item.полное_наименование|truncatechars:20 }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Сумма выплат (руб.)',
+                data: [
+                    {% for item in данные_организаций %}
+                        {{ item.total }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        };
+
+        // Генерация тестовых данных для временного графика
+        function generateTimeData(period) {
+            const now = new Date();
+            const labels = [];
+            const data = [];
+            
+            if (period === 'daily') {
+                for (let i = 13; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(now.getDate() - i);
+                    labels.push(date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }));
+                    data.push(Math.round(Math.random() * 50000 + 10000 + i * 2000));
+                }
+            } else if (period === 'weekly') {
+                for (let i = 7; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(now.getDate() - i * 7);
+                    labels.push(`Неделя ${8-i}`);
+                    data.push(Math.round(Math.random() * 200000 + 50000 + i * 15000));
+                }
+            } else if (period === 'monthly') {
+                const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+                for (let i = 5; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setMonth(now.getMonth() - i);
+                    labels.push(months[date.getMonth()]);
+                    data.push(Math.round(Math.random() * 300000 + 100000 + i * 25000));
+                }
+            }
+            
+            return { labels, data };
+        }
+
+        const comparisonData = {
+            labels: ['Макс. выплата', 'Мин. выплата', 'Средняя выплата', 'Медиана'],
+            datasets: [{
+                label: 'Сумма (руб.)',
+                data: [250000, 15000, 75000, 68000],
+                backgroundColor: [
+                    'rgba(245, 101, 101, 0.8)',
+                    'rgba(72, 187, 120, 0.8)',
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(155, 89, 182, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(245, 101, 101, 1)',
+                    'rgba(72, 187, 120, 1)',
+                    'rgba(102, 126, 234, 1)',
+                    'rgba(155, 89, 182, 1)'
+                ],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        };
+
+        const averageData = {
+            labels: [
+                {% for item in данные_организаций|slice:":5" %}
+                    '{{ item.полное_наименование|truncatechars:15 }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Средняя выплата (руб.)',
+                data: [
+                    {% for item in данные_организаций|slice:":5" %}
+                        {% widthratio item.total item.count 1 %}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(155, 89, 182, 0.8)',
+                borderColor: 'rgba(155, 89, 182, 1)',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        };
+
+        function createChart(canvasId, type, data, options = {}) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) {
+                console.error('Canvas элемент не найден:', canvasId);
+                return null;
+            }
+            
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            };
+
+            const mergedOptions = { ...defaultOptions, ...options };
+            
+            try {
+                if (ctx.chart) {
+                    ctx.chart.destroy();
+                }
+                
+                const chart = new Chart(ctx, {
+                    type: type,
+                    data: data,
+                    options: mergedOptions
+                });
+                
+                ctx.chart = chart;
+                console.log('Диаграмма создана:', canvasId);
+                return chart;
+            } catch (error) {
+                console.error('Ошибка создания диаграммы:', canvasId, error);
+                return null;
+            }
+        }
+
+        function createTimeChart(period) {
+            const timeData = generateTimeData(period);
+            
+            const timeChartData = {
+                labels: timeData.labels,
+                datasets: [{
+                    label: 'Сумма выплат (руб.)',
+                    data: timeData.data,
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            };
+            
+            createChart('timeChart', 'line', timeChartData, {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('ru-RU') + ' руб.';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Сумма: ${context.parsed.y.toLocaleString('ru-RU')} руб.`;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Инициализация диаграмм
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                // 1. Круговая диаграмма
+                if (typesData.labels.length > 0 && typesData.datasets[0].data.length > 0) {
+                    createChart('typesChart', 'doughnut', typesData, {
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((context.parsed / total) * 100);
+                                        return `${context.label}: ${context.parsed.toLocaleString('ru-RU')} руб. (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    const container = document.getElementById('typesChart')?.parentElement;
+                    if (container) container.innerHTML = '<div class="no-data"><span class="no-data-icon">📊</span><p>Нет данных для диаграммы</p></div>';
+                }
+
+                // 2. Столбчатая диаграмма организаций
+                if (orgsData.labels.length > 0 && orgsData.datasets[0].data.length > 0) {
+                    createChart('organizationsChart', 'bar', orgsData, {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('ru-RU') + ' руб.';
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 3. Временной график
+                createTimeChart('daily');
+
+                // 4. Сравнительная диаграмма
+                createChart('comparisonChart', 'bar', comparisonData, {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('ru-RU') + ' руб.';
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // 5. Диаграмма средних выплат
+                if (averageData.labels.length > 0 && averageData.datasets[0].data.length > 0) {
+                    createChart('averageChart', 'bar', averageData, {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('ru-RU') + ' руб.';
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        });
+
+        // Обработчики для переключения временного периода
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                createTimeChart(this.dataset.period);
+            });
+        });
+    </script>
+</body>
+</html>

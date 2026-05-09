@@ -1,0 +1,315 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Создание документов для сметы: {{ smeta.название }}</h1>
+        <a href="{% url 'organization_smeta_detail' smeta.pk %}" class="btn btn-secondary">← Назад к смете</a>
+    </div>
+
+    <div class="info-box">
+        <h3>Проекты в смете:</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Название проекта</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in smeta.проекты.all %}
+                <tr>
+                    <td>{{ project.название }}</td>
+                    <td class="amount">{{ project.запрашиваемая_сумма }} руб.</td>
+                </tr>
+                {% endfor %}
+                <tr class="total">
+                    <td><strong>ИТОГО:</strong></td>
+                    <td class="amount"><strong>{{ smeta.общая_сумма }} руб.</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="form-container">
+        <h2>Заполните данные для письма-заявки</h2>
+        <form method="post" class="document-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>Получатель (Глава района)</h3>
+                <div class="form-group">
+                    <label>{{ form.глава_получатель.label }}:</label>
+                    {{ form.глава_получатель }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.должность_получателя.label }}:</label>
+                    {{ form.должность_получателя }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Отправитель (Администрация)</h3>
+                <div class="form-group">
+                    <label>{{ form.должность_отправителя.label }}:</label>
+                    {{ form.должность_отправителя }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.фио_отправителя.label }}:</label>
+                    {{ form.фио_отправителя }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Основание</h3>
+                <div class="form-group">
+                    <label>{{ form.номер_соглашения.label }}:</label>
+                    {{ form.номер_соглашения }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.дата_соглашения.label }}:</label>
+                    {{ form.дата_соглашения }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.основание.label }}:</label>
+                    {{ form.основание }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Получатель средств (Финансово-бюджетная палата)</h3>
+                <div class="form-group">
+                    <label>{{ form.учреждение.label }}:</label>
+                    {{ form.учреждение }}
+                    <small class="help-text">Кому адресовано письмо</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Выберите проекты для письма-заявки</h3>
+                <div class="projects-list">
+                    {{ form.проекты }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Дополнительно</h3>
+                <div class="form-group">
+                    <label>{{ form.дополнительный_текст.label }}:</label>
+                    {{ form.дополнительный_текст }}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Исполнитель</h3>
+                <div class="form-group">
+                    <label>{{ form.исполнитель.label }}:</label>
+                    {{ form.исполнитель }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.телефон.label }}:</label>
+                    {{ form.телефон }}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    📄 Создать документы с синей гербовой печатью
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 24px;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.info-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 4px solid #3498db;
+}
+
+.info-box h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #e9ecef;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.total {
+    background: #e9ecef;
+    font-weight: bold;
+}
+
+.amount {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    color: #2c3e50;
+    margin: 0 0 25px 0;
+    font-size: 22px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.form-section h3 {
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+.help-text {
+    display: block;
+    margin-top: 5px;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+.projects-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.projects-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.projects-list li {
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.projects-list label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.projects-list input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.form-actions {
+    margin-top: 30px;
+}
+</style>
+{% endblock %}

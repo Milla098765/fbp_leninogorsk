@@ -1,0 +1,217 @@
+{% extends 'index/organization_base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Создание новой сметы</h1>
+        <a href="{% url 'organization_smeti_list' %}" class="btn btn-secondary">← Назад к списку</a>
+    </div>
+
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data" class="smeta-form">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Ошибка!</strong> Пожалуйста, исправьте ошибки в форме.
+                {{ form.errors }}
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.название.id_for_label }}">{{ form.название.label }}:</label>
+                {{ form.название }}
+                {% if form.название.errors %}
+                <div class="error">{{ form.название.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.год.id_for_label }}">{{ form.год.label }}:</label>
+                {{ form.год }}
+                <small class="help-text">Укажите год, на который планируется смета</small>
+                {% if form.год.errors %}
+                <div class="error">{{ form.год.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.документ_сметы.id_for_label }}">{{ form.документ_сметы.label }}:</label>
+                {{ form.документ_сметы }}
+                <small class="help-text">{{ form.документ_сметы.help_text }}</small>
+                {% if form.документ_сметы.errors %}
+                <div class="error">{{ form.документ_сметы.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.комментарий_администрации.id_for_label }}">{{ form.комментарий_администрации.label }}:</label>
+                {{ form.комментарий_администрации }}
+                <small class="help-text">Дополнительная информация по смете (необязательно)</small>
+                {% if form.комментарий_администрации.errors %}
+                <div class="error">{{ form.комментарий_администрации.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="info-box">
+                <h3>Важно!</h3>
+                <ul>
+                    <li>После создания сметы вы сможете добавить в неё проекты</li>
+                    <li>Документ должен содержать электронную печать администрации</li>
+                    <li>Поддерживаемые форматы: PDF, DOC, DOCX</li>
+                </ul>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Создать смету</button>
+                <a href="{% url 'organization_smeti_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.form-group input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.help-text {
+    display: block;
+    margin-top: 5px;
+    color: #7f8c8d;
+    font-size: 13px;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.info-box {
+    background: #e1f5fe;
+    padding: 15px 20px;
+    border-radius: 5px;
+    margin: 20px 0;
+    border-left: 4px solid #03a9f4;
+}
+
+.info-box h3 {
+    margin: 0 0 10px 0;
+    color: #0288d1;
+    font-size: 16px;
+}
+
+.info-box ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #0277bd;
+}
+
+.info-box li {
+    margin: 5px 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-primary, .btn-secondary {
+    flex: 1;
+}
+</style>
+{% endblock %}

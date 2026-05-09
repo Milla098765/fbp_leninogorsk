@@ -1,0 +1,442 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание аналитического отчета</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1::before {
+            content: '📈';
+            font-size: 2rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 15px 25px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .select-multiple {
+            height: 120px;
+        }
+
+        .alert-info {
+            background: #e8f4fd;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info strong {
+            color: #667eea;
+        }
+
+        .alert-info p {
+            margin: 5px 0 0 0;
+            color: #4a5568;
+        }
+
+        .features-box {
+            background: #f7fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .features-box h4 {
+            margin: 0 0 15px 0;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .button-group {
+                justify-content: center;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Создание аналитического отчета</h1>
+            <div class="button-group">
+                <a href="{% url 'planning_reports_list' %}" class="btn btn-secondary">
+                    ← Назад к отчетам
+                </a>
+            </div>
+        </div>
+
+        <!-- УДАЛЕН БЛОК messages -->
+
+        <div class="content-card">
+            <div class="card-header">
+                <h2>💡 Внимание!</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert-info">
+                    <strong>Созданный отчет будет включать:</strong>
+                    <p>Расширенную аналитику с графиками "План vs Факт" и анализом отклонений</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>📋 Основные параметры отчета</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="id_название">Название отчета *</label>
+                        <input type="text" name="название" id="id_название" class="form-control" 
+                               value="{{ form.название.value|default:'' }}" required
+                               placeholder="Например: Аналитический отчет за январь 2024">
+                        <div class="form-text">Дайте понятное название, отражающее суть отчета</div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_дата_начала">Дата начала периода *</label>
+                            <input type="date" name="дата_начала" id="id_дата_начала" class="form-control" 
+                                   value="{{ form.дата_начала.value|default:'' }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_дата_окончания">Дата окончания периода *</label>
+                            <input type="date" name="дата_окончания" id="id_дата_окончания" class="form-control" 
+                                   value="{{ form.дата_окончания.value|default:'' }}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>🏢 Фильтрация по организациям</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="id_организации">Организации для анализа</label>
+                        <select name="организации" id="id_организации" multiple class="form-control select-multiple">
+                            {% for org in form.организации.field.queryset %}
+                                <option value="{{ org.id }}" 
+                                        {% if org.id in form.организации.value or org.id|stringformat:"i" in form.организации.value %}selected{% endif %}>
+                                    {{ org.ПолноеНаименование }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            💡 Удерживайте Ctrl (Cmd на Mac) для выбора нескольких организаций.<br>
+                            Если ничего не выбрано, отчет будет создан по всем организациям.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h3>📊 Что будет включено в аналитический отчет</h3>
+                </div>
+                <div class="card-body">
+                    <div class="features-box">
+                        <ul class="features-list">
+                            <li><strong>Сравнение "План vs Факт"</strong> - ожидаемые и фактические суммы выплат</li>
+                            <li><strong>Анализ отклонений</strong> - превышение плана или экономия средств</li>
+                            <li><strong>Графики по месяцам</strong> - динамика выплат в течение периода</li>
+                            <li><strong>Топ организаций</strong> - рейтинг по объему полученных выплат</li>
+                            <li><strong>Процент выполнения плана</strong> - общая эффективность расходов</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    📈 Создать аналитический отчет
+                </button>
+                <a href="{% url 'planning_reports_list' %}" class="btn btn-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Автозаполнение дат по умолчанию
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            const startDateInput = document.getElementById('id_дата_начала');
+            const endDateInput = document.getElementById('id_дата_окончания');
+            
+            // Если даты не заполнены, устанавливаем текущий месяц по умолчанию
+            if (!startDateInput.value) {
+                startDateInput.value = formatDate(firstDayOfMonth);
+            }
+            if (!endDateInput.value) {
+                endDateInput.value = formatDate(today);
+            }
+            
+            // Валидация дат
+            function validateDates() {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                if (startDate && endDate && startDate > endDate) {
+                    alert('Дата начала не может быть позже даты окончания!');
+                    endDateInput.value = startDateInput.value;
+                }
+            }
+            
+            startDateInput.addEventListener('change', validateDates);
+            endDateInput.addEventListener('change', validateDates);
+            
+            // Анимация появления элементов
+            const cards = document.querySelectorAll('.content-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

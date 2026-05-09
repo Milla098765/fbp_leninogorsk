@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Смета ФБП на {{ смета.год }} год</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .detail-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            color: #2d3748;
+            font-size: 2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section h2 {
+            margin: 0 0 20px 0;
+            color: #2d3748;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .info-item strong {
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .info-item span:last-child {
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .highlight {
+            grid-column: 1 / -1;
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-черновик {
+            background: #ed8936;
+        }
+
+        .status-утверждена {
+            background: #48bb78;
+        }
+
+        .status-отправлена {
+            background: #4299e1;
+        }
+
+        .articles-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.3rem;
+        }
+
+        .total-amount {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .amount {
+            font-weight: 700;
+            color: #48bb78;
+            font-size: 1.1rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .articles-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .articles-table th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .articles-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+
+        .articles-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .empty-articles {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .documents-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .documents-section h2 {
+            margin: 0 0 20px 0;
+            color: #2d3748;
+            border-bottom: 2px solid #48bb78;
+            padding-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .documents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .doc-icon {
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .doc-name {
+            flex: 1;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .doc-date {
+            color: #a0aec0;
+            font-size: 12px;
+            margin-right: 20px;
+        }
+
+        .btn-download {
+            background: #4299e1;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+
+        .btn-download:hover {
+            background: #3182ce;
+        }
+
+        .delete-smeta {
+            background: #f56565;
+            color: white;
+        }
+
+        .delete-smeta:hover {
+            background: #e53e3e;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 20px;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                text-align: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .document-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .doc-date {
+                margin-right: 0;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-container">
+        <div class="page-header">
+            <h1>Смета ФБП на {{ смета.год }} год</h1>
+            <div class="header-actions">
+                <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">← Назад в личный кабинет</a>
+                
+                {% if can_edit %}
+                <a href="{% url 'budget_smeta_fbp_add_admin' смета.pk %}" class="btn btn-warning">
+                    Добавить смету от администрации
+                </a>
+                
+                <a href="{% url 'budget_smeta_fbp_create_docs' смета.pk %}" class="btn btn-success" onclick="return confirm('Создать документы?')">
+                    Создать документы
+                </a>
+                
+                <form method="post" action="{% url 'budget_smeta_fbp_delete' смета.pk %}" style="display: inline;" onsubmit="return confirm('Вы уверены, что хотите удалить эту смету? Это действие нельзя отменить.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger delete-smeta">
+                        Удалить смету
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Информация о смете -->
+        <div class="info-section">
+            <h2>Общая информация</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Статус:</strong>
+                    <span class="status-badge status-{{ смета.статус }}">{{ смета.get_статус_display }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Дата создания:</strong>
+                    <span>{{ смета.дата_создания|date:"d.m.Y H:i" }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Создатель:</strong>
+                    <span>{{ смета.создатель.Фамилия }} {{ смета.создатель.Имя }}</span>
+                </div>
+                
+                {% if смета.создана_на_основе_выплат_за_год %}
+                <div class="info-item highlight">
+                    <strong>На основе выплат:</strong>
+                    <span>{{ смета.создана_на_основе_выплат_за_год }} года</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Статьи расходов -->
+        <div class="articles-section">
+            <div class="section-header">
+                <h2>Статьи расходов</h2>
+                <div class="total-amount">Общая сумма: <span class="amount">{{ смета.общая_сумма|floatformat:2 }} руб.</span></div>
+            </div>
+            
+            {% if смета.статьи.all %}
+            <div class="table-container">
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Наименование статьи</th>
+                            <th>Сумма (руб.)</th>
+                            <th>Источник</th>
+                            {% if can_edit %}
+                            <th>Действия</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for статья in смета.статьи.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>{{ статья.название }}</strong>{% if статья.описание %}<br><span style="font-size: 11px; color: #718096;">{{ статья.описание|truncatechars:50 }}</span>{% endif %}</td>
+                            <td class="amount">{{ статья.сумма|floatformat:2 }}</td>
+                            <td>{{ статья.исходная_организация|default:"ФБП" }}</td>
+                            {% if can_edit %}
+                            <td>
+                                {% if статья.исходная_организация == 'Администрация' %}
+                                <form method="post" action="{% url 'budget_smeta_fbp_delete_statya' статья.pk %}" style="display: inline;" onsubmit="return confirm('Удалить эту статью?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-articles">
+                <p>Нет статей расходов</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Документы -->
+        {% if смета.документы.all %}
+        <div class="documents-section">
+            <h2>Созданные документы</h2>
+            <div class="documents-list">
+                {% for doc in смета.документы.all %}
+                <div class="document-item">
+                    <span class="doc-icon">
+                        {% if doc.тип == 'smeta' %}📊{% else %}📝{% endif %}
+                    </span>
+                    <span class="doc-name">{{ doc.название }}</span>
+                    <span class="doc-date">{{ doc.дата_создания|date:"d.m.Y H:i" }}</span>
+                    <a href="{% url 'download_fbp_document' doc.pk %}" class="btn-download" target="_blank">Скачать PDF</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

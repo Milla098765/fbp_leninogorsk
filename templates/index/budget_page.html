@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Страница бюджета</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f8fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-manage {
+            background: #27ae60;
+        }
+        .btn-manage:hover {
+            background: #219a52;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="header">
+            <h1>Добро пожаловать на страницу бюджета</h1>
+            <a href="{% url 'logout' %}" class="btn" style="background: #e74c3c;">Выйти</a>
+        </div>
+        
+        <p>Здесь можно разместить информацию и функционал, связанный с бюджетным отделом.</p>
+        
+        <div class="actions">
+            <a href="{% url 'budget_applications' %}" class="btn btn-manage">Управление заявками</a>
+            <a href="{% url 'home' %}" class="btn">На главную</a>
+        </div>
+    </div>
+</body>
+</html>

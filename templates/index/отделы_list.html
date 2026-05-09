@@ -1,0 +1,340 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список отделов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '🏢';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .departments-list {
+            list-style: none;
+            display: grid;
+            gap: 15px;
+        }
+
+        .department-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .department-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .department-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .department-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .department-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .department-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .edit-btn {
+            background: #ebf8ff;
+            color: #3182ce;
+            border: 1px solid #bee3f8;
+        }
+
+        .edit-btn:hover {
+            background: #3182ce;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .delete-btn {
+            background: #fed7d7;
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
+        }
+
+        .delete-btn:hover {
+            background: #e53e3e;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .department-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .department-info {
+                flex-direction: column;
+            }
+
+            .department-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 2rem;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header, .content-card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Отделы</h1>
+            <p class="subtitle">Управление структурными подразделениями организации</p>
+            <div class="button-group">
+                <button onclick="location.href='{% url 'home' %}'" class="btn btn-secondary">
+                    🏠 Главная страница
+                </button>
+                <button onclick="location.href='{% url 'отдел_create' %}'" class="btn btn-primary">
+                    ➕ Добавить отдел
+                </button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            {% if departments %}
+                <ul class="departments-list">
+                    {% for dept in departments %}
+                        <li class="department-item">
+                            <div class="department-info">
+                                <div class="department-icon">
+                                    🏢
+                                </div>
+                                <span class="department-name">{{ dept.Название }}</span>
+                            </div>
+                            <div class="department-actions">
+                                <a href="{% url 'отдел_update' dept.id %}" class="action-btn edit-btn">
+                                    ✏️ Изменить
+                                </a>
+                                <a href="{% url 'отдел_delete' dept.id %}" class="action-btn delete-btn">
+                                    🗑️ Удалить
+                                </a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏢</div>
+                    <h3>Отделов пока нет</h3>
+                    <p>Добавьте первый отдел в вашу организацию</p>
+                    <button onclick="location.href='{% url 'отдел_create' %}'" class="btn btn-primary">
+                        ➕ Добавить отдел
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Добавляем анимацию появления элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.department-item');
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.5s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
+        // Добавляем подтверждение при удалении
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('Вы уверены, что хотите удалить этот отдел?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

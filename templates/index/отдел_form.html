@@ -1,0 +1,377 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма отдела</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1::before {
+            content: '🏢';
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Стили для формы */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control.error {
+            border-color: #e53e3e;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .error-message::before {
+            content: '⚠️';
+            font-size: 0.8rem;
+        }
+
+        .help-text {
+            color: #718096;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+                text-align: center;
+                justify-content: center;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+            
+            .content-card {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header, .content-card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+                text-align: center;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-card {
+            animation: fadeIn 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Форма отдела</h1>
+            <p class="subtitle">{% if form.instance.id %}Редактирование{% else %}Создание нового{% endif %} структурного подразделения</p>
+            <div class="button-group">
+                <button onclick="location.href='{% url 'home' %}'" class="btn btn-secondary">
+                    🏠 Главная страница
+                </button>
+                <button onclick="location.href='{% url 'отделы_list' %}'" class="btn btn-secondary">
+                    📋 Список отделов
+                </button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            <i>
+                                {% if field.name == 'Название' %}🏢
+                                {% elif field.name == 'Описание' %}📝
+                                {% else %}📌{% endif %}
+                            </i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span style="color: #e53e3e;">*</span>
+                            {% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="help-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="error-message">
+                                {{ field.errors|join:", " }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        💾 Сохранить
+                    </button>
+                    <button type="button" onclick="location.href='{% url 'отделы_list' %}'" class="btn btn-secondary">
+                        ❌ Отмена
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Добавляем классы Bootstrap-подобные для полей формы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Находим все поля формы и добавляем им класс form-control
+            const formFields = document.querySelectorAll('input, select, textarea');
+            formFields.forEach(field => {
+                if (field.type !== 'submit' && field.type !== 'button' && field.type !== 'reset') {
+                    field.classList.add('form-control');
+                }
+            });
+            
+            // Добавляем анимацию появления
+            const contentCard = document.querySelector('.content-card');
+            if (contentCard) {
+                contentCard.style.opacity = '0';
+                setTimeout(() => {
+                    contentCard.style.transition = 'opacity 0.5s ease';
+                    contentCard.style.opacity = '1';
+                }, 100);
+            }
+            
+            // Добавляем валидацию перед отправкой
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const requiredFields = form.querySelectorAll('[required]');
+                    let hasError = false;
+                    
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('error');
+                            hasError = true;
+                            
+                            // Добавляем сообщение об ошибке если его нет
+                            let errorDiv = field.parentElement.querySelector('.error-message');
+                            if (!errorDiv) {
+                                errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message';
+                                field.parentElement.appendChild(errorDiv);
+                            }
+                            errorDiv.textContent = 'Это поле обязательно для заполнения';
+                        } else {
+                            field.classList.remove('error');
+                            const errorDiv = field.parentElement.querySelector('.error-message');
+                            if (errorDiv && errorDiv.textContent === 'Это поле обязательно для заполнения') {
+                                errorDiv.remove();
+                            }
+                        }
+                    });
+                    
+                    if (hasError) {
+                        e.preventDefault();
+                        // Прокручиваем к первому полю с ошибкой
+                        const firstError = form.querySelector('.error');
+                        if (firstError) {
+                            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstError.focus();
+                        }
+                    }
+                });
+                
+                // Убираем ошибку при вводе
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        this.classList.remove('error');
+                        const errorDiv = this.parentElement.querySelector('.error-message');
+                        if (errorDiv && errorDiv.textContent === 'Это поле обязательно для заполнения') {
+                            errorDiv.remove();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

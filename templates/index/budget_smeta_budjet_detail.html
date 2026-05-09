@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="page-header">
+        <h1>Смета бюджета на {{ смета.год }} год</h1>
+        <div class="header-actions">
+            <a href="{% url 'budget_smeti_budjet' %}" class="btn btn-secondary">← Назад</a>
+            {% if can_edit %}
+            <a href="{% url 'budget_smeta_create_docs' смета.pk %}" class="btn btn-success" onclick="return confirm('Создать документы и отправить в Telegram?')">
+                📤 Отправить
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Информация о смете -->
+    <div class="info-section">
+        <h2>Общая информация</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Статус:</strong>
+                <span class="status-badge status-{{ смета.статус }}">{{ смета.get_статус_display }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Дата создания:</strong>
+                <span>{{ смета.дата_создания|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Последнее изменение:</strong>
+                <span>{{ смета.дата_обновления|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Создатель:</strong>
+                <span>{{ смета.создатель.Фамилия }} {{ смета.создатель.Имя }}</span>
+            </div>
+            
+            {% if смета.создана_на_основе_выплат %}
+            <div class="info-item highlight">
+                <strong>Создана на основе выплат:</strong>
+                <span>{{ смета.исходный_год }} года</span>
+            </div>
+            {% endif %}
+            
+            {% if смета.смета_администрации %}
+            <div class="info-item highlight">
+                <strong>На основе сметы администрации:</strong>
+                <span>{{ смета.смета_администрации.название }} ({{ смета.смета_администрации.год }})</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Статьи расходов -->
+    <div class="articles-section">
+        <div class="section-header">
+            <h2>Статьи расходов</h2>
+            <div class="total-amount">Общая сумма: <span class="amount">{{ смета.общая_сумма|floatformat:2 }} руб.</span></div>
+        </div>
+        
+        {% if смета.статьи.all %}
+        <div class="table-container">
+            <table class="articles-table">
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Статья</th>
+                        <th>Тип</th>
+                        <th>Сумма</th>
+                        <th>Описание</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for статья in смета.статьи.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ статья.название }}</strong></td>
+                        <td>{{ статья.get_тип_display }}</td>
+                        <td class="amount">{{ статья.сумма|floatformat:2 }} руб.</td>
+                        <td>
+                            {{ статья.описание|default:"-" }}
+                            {% if статья.основано_на_выплатах %}
+                            <br><small class="highlight-text">(на основе {{ статья.количество_выплат }} выплат)</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-articles">
+            <p>Нет статей расходов</p>
+            {% if can_edit %}
+            <p class="hint">Используйте форму ниже, чтобы добавить статьи</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Форма добавления статьи (только для черновиков) -->
+    {% if can_edit %}
+    <div class="add-article-section">
+        <h3>Добавить статью расходов</h3>
+        <form method="post" class="article-form">
+            {% csrf_token %}
+            <input type="hidden" name="add_statya" value="1">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.тип.id_for_label }}">Тип:</label>
+                    {{ form.тип }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.название.id_for_label }}">Название:</label>
+                    {{ form.название }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.сумма.id_for_label }}">Сумма (руб.):</label>
+                    {{ form.сумма }}
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.описание.id_for_label }}">Описание:</label>
+                    {{ form.описание }}
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Добавить статью</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Документы -->
+    {% if смета.документы.all %}
+    <div class="documents-section">
+        <h3>Созданные документы</h3>
+        <div class="documents-list">
+            {% for doc in смета.документы.all %}
+            <div class="document-item">
+                <span class="doc-icon">📄</span>
+                <span class="doc-name">{{ doc.название }}</span>
+                <span class="doc-date">{{ doc.дата_создания|date:"d.m.Y H:i" }}</span>
+                <a href="{% url 'download_document' doc.pk %}" class="btn-download">Скачать</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.page-header h1 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.info-section {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.info-item strong {
+    color: #666;
+}
+
+.highlight {
+    grid-column: 1 / -1;
+    background: #e8f4fd;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-черновик {
+    background: #f39c12;
+}
+
+.status-утверждена {
+    background: #27ae60;
+}
+
+.status-отправлена {
+    background: #3498db;
+}
+
+.articles-section {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.total-amount {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.amount {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.articles-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.articles-table th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+}
+
+.articles-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.articles-table tr:hover {
+    background: #f8f9fa;
+}
+
+.highlight-text {
+    color: #3498db;
+}
+
+.empty-articles {
+    text-align: center;
+    padding: 40px;
+    color: #95a5a6;
+}
+
+.empty-articles .hint {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+.add-article-section {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-article-section h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #27ae60;
+    padding-bottom: 10px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.documents-section {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.documents-section h3 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.document-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 4px solid #27ae60;
+}
+
+.doc-icon {
+    font-size: 20px;
+    margin-right: 12px;
+}
+
+.doc-name {
+    flex: 1;
+    color: #2c3e50;
+}
+
+.doc-date {
+    color: #95a5a6;
+    font-size: 12px;
+    margin-right: 15px;
+}
+
+.btn-download {
+    background: #3498db;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+}
+</style>
+{% endblock %}
